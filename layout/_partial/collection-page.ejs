@@ -1,0 +1,272 @@
+<%
+const type = typeof collectionType !== 'undefined' ? collectionType : 'tag';
+const routeParts = String(page.path || '').split('/').filter(Boolean).filter((part) => !(theme.i18n && theme.i18n.languages || []).includes(part));
+const routeCollectionIndex = routeParts.findIndex((part) => part === (type === 'category' ? 'categories' : 'tags'));
+const routeValue = routeCollectionIndex >= 0 ? routeParts[routeCollectionIndex + 1] : '';
+const rawName = page.tag || page.category || page.tag_slug || routeValue || page.title || '';
+const collections = midnight_config('inner_pages.collections', []);
+const currentRoute = String(page.path || '').replace(/^\/+/, '').replace(/index\.html?$/i, '');
+
+function slug(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+function cleanPath(value) {
+  return String(value || '').replace(/^\/+/, '').replace(/index\.html?$/i, '');
+}
+
+function collectionValueFromPath(path) {
+  const parts = String(path || '').split('/').filter(Boolean);
+  const index = parts.findIndex((part) => part.toLowerCase() === (type === 'category' ? 'categories' : 'tags'));
+  return index >= 0 ? parts[index + 1] : '';
+}
+
+function matchCollection(item) {
+  return slug(item.name) === slug(rawName) ||
+    slug(midnight_value(item.label, '')) === slug(rawName) ||
+    slug(cleanPath(item.path).split('/').filter(Boolean).pop()) === slug(rawName) ||
+    cleanPath(item.path) === currentRoute;
+}
+
+const collection = collections.find(matchCollection) || {};
+const collectionRouteValue = collectionValueFromPath(collection.path);
+const matchAliases = Array.from(new Set([
+  rawName,
+  routeValue,
+  page.tag_slug,
+  page.category_slug,
+  collectionRouteValue,
+  cleanPath(collection.path).split('/').filter(Boolean).pop()
+].filter(Boolean).map(slug)));
+const displayName = midnight_value(collection.label, collection.name || rawName || (type === 'category' ? __('categories') : __('tags')));
+const className = collection.name || displayName;
+const description = midnight_value(collection.description, page.description || '');
+const accent = collection.accent || theme.appearance && theme.appearance.accent || '#2563eb';
+const kicker = midnight_value(collection.kicker, (collection.name || displayName || '').toUpperCase());
+const breadcrumb = collection.path ? cleanPath(collection.path) : (type === 'category' ? 'categories' : 'tags');
+const authorName = config.author || (theme.appearance && (theme.appearance.nick || theme.appearance.logo_text)) || config.title || 'midnight';
+const authorInitial = Array.from(String(authorName).trim())[0] || 'm';
+
+function postMatchesValue(post) {
+  const field = type === 'category' ? 'categories' : 'tags';
+  const rawValues = post[field] && post[field].data ? post[field].data : (Array.isArray(post[field]) ? post[field] : []);
+  const values = rawValues.map((item) => (typeof item === 'string' ? { name: item, slug: item } : item));
+  return values.some((item) => matchAliases.includes(slug(item.name)) || matchAliases.includes(slug(item.slug || item.name)) || matchAliases.includes(slug(cleanPath(item.path).split('/').filter(Boolean).pop())));
+}
+const providedPosts = page.posts && page.posts.toArray ? page.posts.toArray() : (Array.isArray(page.posts) ? page.posts : (page.posts && Array.isArray(page.posts.data) ? page.posts.data : []));
+const allProvidedPosts = page.all_posts && page.all_posts.toArray ? page.all_posts.toArray() : (Array.isArray(page.all_posts) ? page.all_posts : (page.all_posts && Array.isArray(page.all_posts.data) ? page.all_posts.data : []));
+const fallbackPosts = site.posts && site.posts.toArray && matchAliases.length
+  ? site.posts.toArray().filter((post) => midnight_page_lang(post) === midnight_page_lang(page)).filter(postMatchesValue)
+  : [];
+const filteredProvidedPosts = matchAliases.length
+  ? providedPosts.filter((post) => midnight_page_lang(post) === midnight_page_lang(page)).filter(postMatchesValue)
+  : providedPosts;
+const filteredAllProvidedPosts = matchAliases.length
+  ? allProvidedPosts.filter((post) => midnight_page_lang(post) === midnight_page_lang(page)).filter(postMatchesValue)
+  : allProvidedPosts;
+const initialCollectionPosts = (filteredProvidedPosts.length ? filteredProvidedPosts : fallbackPosts).sort((a, b) => b.date - a.date);
+const allCollectionPosts = (filteredAllProvidedPosts.length ? filteredAllProvidedPosts : (fallbackPosts.length ? fallbackPosts : initialCollectionPosts)).sort((a, b) => b.date - a.date);
+const collectionPosts = allCollectionPosts;
+const featured = allCollectionPosts.find((post) => [post.editor_pick, post.editorPick, post.home_editor_pick, post.homeEditorPick].some((value) => value === true || value === 1 || String(value || '').toLowerCase() === 'true')) || allCollectionPosts[0];
+const latest = collectionPosts;
+
+function postUrl(post) {
+  return midnight_i18n_url(post.path);
+}
+
+function postExcerpt(post) {
+  return midnight_excerpt(post, 150);
+}
+
+function tagClass(label) {
+  return String(label || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'topic';
+}
+
+function termSlug(term) {
+  return String((term && (term.slug || term.name)) || '').trim().replace(/\s+/g, '-');
+}
+
+function termUrl(kind, value) {
+  return kind === 'categories' ? midnight_i18n_url('/categories/' + encodeURIComponent(value) + '/') : midnight_tag_url(value);
+}
+
+function postDateValue(post) {
+  const value = post && post.date && typeof post.date.valueOf === 'function' ? post.date.valueOf() : new Date(post.date || 0).valueOf();
+  return Number.isFinite(value) ? value : 0;
+}
+
+function clickCount(post) {
+  const values = [
+    post.clicks,
+    post.click,
+    post.click_count,
+    post.clickCount,
+    post.views,
+    post.view,
+    post.views_count,
+    post.view_count,
+    post.viewCount,
+    post.pageviews,
+    post.page_views,
+    post.pageViews,
+    post.pv,
+    post.visits,
+    post.reads,
+    post.read_count,
+    post.readCount,
+    post.popularity,
+    post.stats && post.stats.clicks,
+    post.stats && post.stats.views
+  ];
+  const value = values.map(Number).find((item) => Number.isFinite(item));
+  return Number.isFinite(value) ? value : 0;
+}
+
+function commentCount(post) {
+  const values = [post.comments, post.comment_count, post.commentCount, post.stats && post.stats.comments];
+  const value = values.map(Number).find((item) => Number.isFinite(item));
+  return Number.isFinite(value) ? value : 0;
+}
+
+function collectRelatedTerms() {
+  const map = {};
+  ['tags', 'categories'].forEach((field) => {
+    allCollectionPosts.forEach((post) => {
+      const rawTerms = post[field] && post[field].data ? post[field].data : (Array.isArray(post[field]) ? post[field] : []);
+      const terms = rawTerms.map((term) => (typeof term === 'string' ? { name: term, slug: term } : term));
+      terms.forEach((term) => {
+        const itemSlug = termSlug(term);
+        if (!itemSlug || matchAliases.includes(slug(itemSlug)) || matchAliases.includes(slug(term.name))) return;
+        const kind = field === 'categories' ? 'categories' : 'tags';
+        const key = `${kind}:${itemSlug.toLowerCase()}`;
+        if (!map[key]) {
+          map[key] = {
+            title: term.name || itemSlug,
+            slug: itemSlug,
+            kind,
+            count: 0,
+            latest: null
+          };
+        }
+        map[key].count += 1;
+        if (!map[key].latest || postDateValue(post) > postDateValue(map[key].latest)) map[key].latest = post;
+      });
+    });
+  });
+  return Object.values(map)
+    .sort((a, b) => b.count - a.count || postDateValue(b.latest) - postDateValue(a.latest))
+    .slice(0, 4);
+}
+
+const mapItems = collectRelatedTerms();
+%>
+
+<section class="inner-page collection-page" style="--inner-accent: <%- accent %>">
+  <header class="inner-hero collection-hero">
+    <div class="inner-hero__body">
+      <div class="inner-hero__kicker"><%= kicker %></div>
+      <h1><%= displayName %></h1>
+      <% if (description) { %>
+        <p><%= description %></p>
+      <% } %>
+      <div class="inner-hero__meta">
+        <span class="tag tag--<%= tagClass(className) %>"><%= displayName %></span>
+        <span class="inner-hero__path">midnight / <%= breadcrumb %></span>
+      </div>
+    </div>
+    <div class="inner-hero__cover" aria-hidden="true">
+      <i></i><i></i><i></i><i></i>
+    </div>
+  </header>
+
+  <section class="collection-layout inner-layout-v2">
+    <main class="collection-list">
+      <% if (featured) { %>
+        <section class="channel-section channel-featured">
+          <div class="section-heading">
+            <h2><%= midnight_text('labels.channel_featured', 'Channel Featured') %></h2>
+            <p><%= midnight_text('labels.channel_featured_description', '') %></p>
+          </div>
+          <article class="channel-lead">
+            <a class="story-cover story-cover--lead" href="<%- postUrl(featured) %>" aria-label="<%= featured.title %>">
+              <i></i><i></i><i></i><i></i>
+            </a>
+            <div class="channel-lead__body">
+              <span class="tag tag--<%= tagClass(className) %>"><%= displayName %></span>
+              <h3><a href="<%- postUrl(featured) %>"><%= featured.title %></a></h3>
+              <% if (postExcerpt(featured)) { %>
+                <p><%= postExcerpt(featured) %></p>
+              <% } %>
+              <footer class="channel-lead__meta">
+                <time datetime="<%= date_xml(featured.date) %>"><%= date(featured.date, 'YYYY-MM-DD') %></time>
+                <em><%= midnight_text('labels.read_count', 'Reads') %> <%= clickCount(featured) || '-' %></em>
+                <em><%= midnight_text('labels.comments_count', 'Comments') %> <%= commentCount(featured) || '-' %></em>
+              </footer>
+            </div>
+          </article>
+        </section>
+      <% } %>
+
+      <% if (mapItems.length) { %>
+        <section class="channel-section channel-map-section">
+          <div class="section-heading">
+            <h2><%= midnight_text('labels.channel_map', 'Channel Map') %></h2>
+            <p><%= midnight_text('labels.channel_map_description', '') %></p>
+          </div>
+          <div class="channel-map">
+            <% mapItems.forEach((item) => { %>
+              <article class="channel-map__card">
+                <h3><a href="<%- termUrl(item.kind, item.slug) %>"><%= item.title %></a></h3>
+                <p><%= item.count %> <%= midnight_text('labels.posts', 'Posts') %> · <%= midnight_text('labels.latest', 'Latest') %> <%= item.latest ? date(item.latest.date, 'YYYY-MM-DD') : '' %></p>
+              </article>
+            <% }) %>
+          </div>
+        </section>
+      <% } %>
+
+      <section class="channel-section channel-latest">
+        <div class="section-heading">
+          <div class="section-heading__copy">
+            <h2><%= midnight_text('labels.channel_latest', 'Latest Articles') %></h2>
+            <p><%= midnight_text('labels.channel_latest_description', '') %></p>
+          </div>
+        </div>
+        <% if (collectionPosts.length) { %>
+          <% latest.forEach((post) => { %>
+            <article class="latest-card collection-card">
+              <a class="story-cover story-cover--thumb" href="<%- postUrl(post) %>" aria-label="<%= post.title %>">
+                <i></i><i></i><i></i><i></i>
+              </a>
+              <div>
+                <div class="latest-card__meta">
+                  <span class="tag tag--<%= tagClass(className) %>"><%= displayName %></span>
+                  <time datetime="<%= date_xml(post.date) %>"><%= date(post.date, 'YYYY-MM-DD') %></time>
+                </div>
+                <h3><a href="<%- postUrl(post) %>"><%= post.title %></a></h3>
+                <% if (postExcerpt(post)) { %>
+                  <p><%= postExcerpt(post) %></p>
+                <% } %>
+              </div>
+              <aside>
+                <span class="avatar"><%= authorInitial %></span>
+                <strong><%= post.author || authorName %></strong>
+                <small><%= midnight_text('labels.author', 'Author') %></small>
+                <time datetime="<%= date_xml(post.date) %>"><%= date(post.date, 'YYYY-MM-DD') %></time>
+              </aside>
+            </article>
+          <% }) %>
+        <% } else { %>
+          <section class="archive-empty">
+            <h2><%= midnight_text('labels.collection_empty', 'No stories yet') %></h2>
+            <p><%= midnight_text('labels.collection_empty_description', '') %></p>
+            <a class="panel-button" href="<%- midnight_i18n_url('/') %>"><%= midnight_text('labels.back_home', 'Back Home') %></a>
+          </section>
+        <% } %>
+      </section>
+    </main>
+
+    <aside class="collection-sidebar inner-sidebar">
+      <%- partial('_partial/inner-sidebar', { variant: 'channel', sidebarPosts: allCollectionPosts }) %>
+    </aside>
+  </section>
+</section>

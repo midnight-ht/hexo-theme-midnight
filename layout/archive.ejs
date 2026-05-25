@@ -1,0 +1,246 @@
+<%
+const archivePosts = page.posts && page.posts.toArray ? page.posts.toArray() : [];
+const currentLang = midnight_page_lang(page);
+const rawSitePosts = site.posts && site.posts.toArray ? site.posts.toArray() : archivePosts;
+const langSitePosts = rawSitePosts.filter((post) => midnight_page_lang(post) === currentLang);
+const allSitePosts = (langSitePosts.length ? langSitePosts : rawSitePosts).sort((a, b) => b.date - a.date);
+const archivePerPage = Number(page.per_page || 10);
+const archiveCurrent = Number(page.current || 1);
+const archiveDerivedTotal = archivePerPage > 0 && allSitePosts.length > archivePerPage
+  ? Math.ceil(allSitePosts.length / archivePerPage)
+  : 1;
+const archiveTotalPages = Number(page.total || archiveDerivedTotal);
+const archiveHasPagedData = Boolean(page.total || page.current || page.per_page || page.prev_link || page.next_link);
+const archiveStart = archivePerPage > 0 ? (archiveCurrent - 1) * archivePerPage : 0;
+const archiveEnd = archivePerPage > 0 ? archiveStart + archivePerPage : allSitePosts.length;
+const posts = (archiveHasPagedData && archivePosts.length ? archivePosts : allSitePosts.slice(archiveStart, archiveEnd)).sort((a, b) => b.date - a.date);
+const archiveTotal = allSitePosts.length || posts.length;
+const years = Array.from(new Set(allSitePosts.map((post) => date(post.date, 'YYYY'))));
+const tagMap = {};
+const categoryMap = {};
+
+function collectTerms(post, field, target) {
+  const rawTerms = post[field] && post[field].data ? post[field].data : (Array.isArray(post[field]) ? post[field] : []);
+  const terms = rawTerms.map((term) => (typeof term === 'string' ? { name: term, slug: term } : term));
+  terms.forEach((term) => {
+    if (!term || !term.name) return;
+    if (!target[term.name]) {
+      target[term.name] = {
+        name: term.name,
+        path: term.path,
+        count: 0
+      };
+    }
+    target[term.name].count += 1;
+  });
+}
+
+allSitePosts.forEach((post) => {
+  collectTerms(post, 'tags', tagMap);
+  collectTerms(post, 'categories', categoryMap);
+});
+
+const topTags = Object.values(tagMap).sort((a, b) => b.count - a.count).slice(0, 8);
+const topCategories = Object.values(categoryMap).sort((a, b) => b.count - a.count).slice(0, 6);
+const archiveChannels = topTags.slice(0, 3);
+const authorTotal = Array.from(new Set(allSitePosts.map((post) => post.author || config.author || 'midnight'))).length;
+
+function postSummary(post) {
+  return midnight_excerpt(post, 150);
+}
+
+function primaryTerm(post) {
+  const rawTags = post.tags && post.tags.data ? post.tags.data : (Array.isArray(post.tags) ? post.tags : []);
+  const rawCategories = post.categories && post.categories.data ? post.categories.data : (Array.isArray(post.categories) ? post.categories : []);
+  const tags = rawTags.map((tag) => (typeof tag === 'string' ? { name: tag, slug: tag } : tag));
+  const categories = rawCategories.map((category) => (typeof category === 'string' ? { name: category, slug: category } : category));
+  return tags[0] || categories[0] || null;
+}
+
+function tagClass(label) {
+  return String(label || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'ai-agent';
+}
+
+function collectionPath(item, fallback) {
+  return item && item.path ? midnight_i18n_url(item.path) : fallback;
+}
+
+function clickCount(post) {
+  const values = [
+    post.clicks,
+    post.click,
+    post.click_count,
+    post.clickCount,
+    post.views,
+    post.view,
+    post.views_count,
+    post.view_count,
+    post.viewCount,
+    post.pageviews,
+    post.page_views,
+    post.pageViews,
+    post.pv,
+    post.visits,
+    post.reads,
+    post.read_count,
+    post.readCount,
+    post.popularity,
+    post.stats && post.stats.clicks,
+    post.stats && post.stats.views
+  ];
+  const value = values.map(Number).find((item) => Number.isFinite(item));
+  return Number.isFinite(value) ? value : 0;
+}
+
+function commentCount(post) {
+  const values = [post.comments, post.comment_count, post.commentCount, post.stats && post.stats.comments];
+  const value = values.map(Number).find((item) => Number.isFinite(item));
+  return Number.isFinite(value) ? value : 0;
+}
+
+function configText(path, fallback) {
+  return midnight_text(path, fallback);
+}
+
+const archiveMap = [
+  {
+    metric: archiveTotal,
+    title: configText('labels.total_posts', configText('labels.posts', 'Posts')),
+    body: configText('labels.archive_description', '')
+  },
+  {
+    metric: topTags.length || topCategories.length,
+    title: configText('labels.series', 'Series'),
+    body: configText('labels.series_description', '')
+  },
+  {
+    metric: authorTotal,
+    title: configText('labels.author', 'Author'),
+    body: configText('labels.author_description', '')
+  },
+  {
+    metric: topCategories.length || years.length,
+    title: configText('labels.channels', 'Channels'),
+    body: configText('labels.latest_description', '')
+  }
+];
+
+const filterItems = [
+  { label: configText('labels.all', 'All'), href: '#archive-list', active: true }
+].concat(years.slice(0, 2).map((year) => ({ label: year, href: '#archive-year-' + year })))
+  .concat(archiveChannels.map((item) => ({ label: item.name, href: collectionPath(item, '#archive-list') })));
+const renderedArchiveYears = new Set();
+%>
+
+<section class="inner-page archive-page">
+  <header class="inner-hero archive-hero">
+    <div class="inner-hero__body">
+      <div class="inner-hero__kicker"><%= configText('labels.archive_kicker', 'Chronological Index') %></div>
+      <h1><%= __('archive') %></h1>
+      <p><%= configText('labels.archive_description', '') %></p>
+      <div class="inner-hero__meta">
+        <span class="tag tag--archive"><%= archiveTotal %> <%= configText('labels.posts', 'Posts') %></span>
+        <span class="inner-hero__path">midnight / archive</span>
+      </div>
+    </div>
+    <div class="inner-hero__cover" aria-hidden="true">
+      <i></i><i></i><i></i><i></i>
+    </div>
+  </header>
+
+  <div class="collection-layout inner-layout-v2">
+    <main class="collection-list">
+      <section class="channel-section archive-v2-section">
+        <div class="section-heading">
+          <h2><%= configText('labels.archive_v2_title', configText('labels.archive_map', 'Archive Enhanced')) %></h2>
+          <p><%= configText('labels.archive_v2_description', configText('labels.archive_map_description', 'Year index, channel filters, topic groups, and article totals.')) %></p>
+        </div>
+
+        <nav class="archive-filter" aria-label="<%= __('archive') %>">
+          <% filterItems.forEach((item) => { %>
+            <a class="tag tag--archive<%= item.active ? ' is-active' : '' %>" href="<%- item.href %>"><%= item.label %></a>
+          <% }) %>
+        </nav>
+
+        <div class="channel-map">
+          <% archiveMap.forEach((item) => { %>
+            <article class="channel-map__card channel-map__card--metric">
+              <div class="channel-map__metric"><%= item.metric %></div>
+              <h3><%= item.title %></h3>
+              <p><%= item.body %></p>
+            </article>
+          <% }) %>
+        </div>
+
+        <% if (posts.length) { %>
+          <div class="archive-v2-list" id="archive-list">
+          <% posts.forEach((post) => { %>
+            <%
+            const year = date(post.date, 'YYYY');
+            const month = date(post.date, 'MMMM');
+            const term = primaryTerm(post);
+            const summary = postSummary(post);
+            const yearAnchor = renderedArchiveYears.has(year) ? '' : 'archive-year-' + year;
+            renderedArchiveYears.add(year);
+            %>
+            <article class="archive-card archive-card--v2"<% if (yearAnchor) { %> id="<%= yearAnchor %>"<% } %>>
+              <time class="archive-date" datetime="<%= date_xml(post.date) %>">
+                <span><%= year %></span>
+                <small><%= month %></small>
+              </time>
+              <div class="archive-card__body">
+                <div class="archive-card__meta">
+                  <% if (term) { %>
+                    <a class="tag tag--<%= tagClass(term.name) %>" href="<%- collectionPath(term, '#') %>"><%= term.name %></a>
+                  <% } %>
+                  <span><%= midnight_page_lang(post) %></span>
+                </div>
+                <h3><a href="<%- midnight_i18n_url(post.path) %>"><%= post.title %></a></h3>
+                <% if (summary) { %>
+                  <p><%= summary %></p>
+                <% } %>
+              </div>
+              <footer class="archive-card__stats">
+                <span><%= configText('labels.read_count', 'Reads') %> <%= clickCount(post) || '-' %></span>
+                <span><%= configText('labels.comments_count', 'Comments') %> <%= commentCount(post) || '-' %></span>
+              </footer>
+            </article>
+          <% }) %>
+          </div>
+
+          <%- partial('_partial/pagination', {
+            label: __('archive'),
+            current: archiveCurrent,
+            total: archiveTotalPages,
+            prev_link: page.prev_link,
+            next_link: page.next_link,
+            all_posts: page.all_posts || allSitePosts,
+            per_page: archivePerPage
+          }) %>
+        <% } else { %>
+          <section class="archive-empty">
+            <h2><%= configText('labels.no_posts', 'No Posts Yet') %></h2>
+            <p><%= configText('labels.no_posts_description', '') %></p>
+            <a class="panel-button" href="<%- midnight_i18n_url('/') %>"><%= configText('labels.back_home', 'Back Home') %></a>
+          </section>
+        <% } %>
+      </section>
+    </main>
+
+    <aside class="collection-sidebar inner-sidebar">
+      <%- partial('_partial/inner-sidebar', { variant: 'archive' }) %>
+
+      <section class="sidebar-panel">
+        <h2><%= configText('labels.years', 'Years') %></h2>
+        <p><%= configText('labels.timeline_description', '') %></p>
+        <% if (years.length) { %>
+          <% years.forEach((year) => { %>
+            <a class="series-row" href="#archive-year-<%= year %>"><span><%= year %></span><b><%= allSitePosts.filter((post) => date(post.date, 'YYYY') === year).length %></b></a>
+          <% }) %>
+        <% } else { %>
+          <span class="toc-empty"><%= configText('labels.no_posts', 'No Posts Yet') %></span>
+        <% } %>
+      </section>
+    </aside>
+  </div>
+</section>

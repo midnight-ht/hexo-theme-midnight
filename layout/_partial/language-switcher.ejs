@@ -1,0 +1,15 @@
+<% const languageLinks = midnight_language_links(page); %>
+<section class="language-switcher" aria-label="<%= __('translations') %>">
+  <span><%= __('translations') %></span>
+  <% if (languageLinks.length) { %>
+    <div class="language-list">
+      <% languageLinks.forEach((item) => { %>
+        <a class="<%= item.active ? 'is-active' : '' %>" href="<%- item.url %>" hreflang="<%= item.lang %>">
+          <%= item.lang %>
+        </a>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <em class="empty-state empty-state--inline"><%= __('no_translations') %></em>
+  <% } %>
+</section>

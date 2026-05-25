@@ -1,0 +1,57 @@
+<%
+const privacy = midnight_config('inner_pages.privacy', {});
+const title = midnight_value(privacy.title, __('privacy'));
+const description = midnight_value(privacy.description, '');
+const sections = privacy.sections || [];
+const updated = midnight_value(privacy.updated, '');
+%>
+
+<article class="inner-page legal-page privacy-page">
+  <header class="inner-hero legal-hero">
+    <div class="inner-hero__body">
+      <div class="inner-hero__kicker"><%= midnight_text('labels.privacy_kicker', 'Privacy') %></div>
+      <h1><%= title %></h1>
+      <% if (description) { %>
+        <p><%= description %></p>
+      <% } %>
+      <div class="inner-hero__meta">
+        <span class="tag tag--research"><%= __('privacy') %></span>
+        <span class="inner-hero__path">midnight / privacy</span>
+      </div>
+    </div>
+    <div class="inner-hero__cover legal-hero__cover" aria-hidden="true">
+      <i></i><i></i><i></i><i></i>
+    </div>
+  </header>
+
+  <section class="legal-layout">
+    <main class="legal-content">
+      <% if (updated) { %>
+        <p class="legal-updated"><%= midnight_text('labels.privacy_updated', 'Last updated') %>: <%= updated %></p>
+      <% } %>
+
+      <% if (sections.length) { %>
+        <% sections.forEach((item) => { %>
+          <section class="legal-section">
+            <h2><%= midnight_value(item.title, '') %></h2>
+            <p><%= midnight_value(item.description, '') %></p>
+          </section>
+        <% }) %>
+      <% } %>
+
+      <% if (privacy.body) { %>
+        <div class="article-content">
+          <p><%= midnight_value(privacy.body, '') %></p>
+        </div>
+      <% } %>
+    </main>
+
+    <aside class="collection-sidebar inner-sidebar legal-sidebar">
+      <section class="sidebar-panel">
+        <h2><%= midnight_text('labels.privacy_summary', 'Summary') %></h2>
+        <p><%= midnight_value(privacy.summary, '') %></p>
+      </section>
+      <%- partial('_partial/inner-sidebar', { variant: 'privacy', showSponsored: false, showNewsletter: false }) %>
+    </aside>
+  </section>
+</article>

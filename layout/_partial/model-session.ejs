@@ -1,0 +1,37 @@
+<%
+const model = theme.model_session || {};
+const modelEndpoint = String(model.endpoint || '').trim();
+%>
+<% if (model.enabled && modelEndpoint) { %>
+  <aside
+    class="model-session"
+    data-endpoint="<%- modelEndpoint %>"
+    data-title="<%- page.title || '' %>"
+    data-url="<%- page.permalink || '' %>"
+    data-max-messages="<%- model.max_messages || 12 %>"
+  >
+    <div class="model-session__head">
+      <h2><%= midnight_text('model_session.title', 'model_session') %></h2>
+      <span class="status-dot" aria-hidden="true"></span>
+    </div>
+    <% if (model.allow_user_system_prompt) { %>
+      <label class="field">
+        <span><%= __('system_prompt') %></span>
+        <textarea data-system-prompt rows="4"><%= model.default_system_prompt || '' %></textarea>
+      </label>
+    <% } else { %>
+      <input type="hidden" data-system-prompt value="<%- model.default_system_prompt || '' %>">
+    <% } %>
+    <div class="model-session__messages" data-session-messages aria-live="polite">
+      <div class="model-session__empty" data-session-empty>
+        <strong><%= midnight_text('model_session.empty_title', 'Ask from the article context') %></strong>
+        <span><%= midnight_text('model_session.empty_description', 'Your first question will appear here with the assistant response.') %></span>
+      </div>
+    </div>
+    <form class="model-session__form" data-session-form>
+      <label class="sr-only" for="model-session-input"><%= __('ask_article') %></label>
+      <textarea id="model-session-input" data-session-input rows="3" placeholder="<%= __('ask_article') %>"></textarea>
+      <button type="submit" data-session-submit data-label-idle="<%= __('send') %>" data-label-loading="<%= midnight_text('model_session.loading', 'Sending') %>"><%= __('send') %></button>
+    </form>
+  </aside>
+<% } %>

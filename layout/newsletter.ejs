@@ -1,0 +1,77 @@
+<%
+const newsletter = midnight_config('inner_pages.newsletter', {});
+const title = midnight_value(newsletter.title, __('newsletter'));
+const description = midnight_value(newsletter.description, '');
+const benefits = newsletter.benefits || [];
+const editions = newsletter.editions || [];
+const privacy = midnight_value(newsletter.privacy, '');
+const newsletterFormAction = String(newsletter.form && newsletter.form.action || '').trim();
+%>
+
+<article class="inner-page commercial-page newsletter-page">
+  <header class="inner-hero commercial-hero commercial-hero--newsletter">
+    <div class="inner-hero__body">
+      <div class="inner-hero__kicker"><%= midnight_text('labels.newsletter_kicker', 'Newsletter') %></div>
+      <h1><%= title %></h1>
+      <% if (description) { %>
+        <p><%= description %></p>
+      <% } %>
+      <% if (newsletterFormAction) { %>
+        <%- partial('_partial/newsletter-form', { variant: 'hero', privacy }) %>
+      <% } %>
+    </div>
+    <div class="commercial-hero__media newsletter-signal" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+    </div>
+  </header>
+
+  <section class="collection-layout inner-layout-v2 commercial-layout">
+    <main class="collection-list commercial-main">
+      <% if (benefits.length) { %>
+        <section class="channel-section commercial-section">
+          <div class="section-heading">
+            <h2><%= midnight_text('labels.newsletter_benefits', 'What you get') %></h2>
+            <p><%= midnight_text('labels.newsletter_benefits_description', '') %></p>
+          </div>
+          <div class="commercial-card-grid">
+            <% benefits.forEach((item) => { %>
+              <article class="commercial-card">
+                <span><%= midnight_value(item.badge, '') %></span>
+                <h3><%= midnight_value(item.title, '') %></h3>
+                <p><%= midnight_value(item.description, '') %></p>
+              </article>
+            <% }) %>
+          </div>
+        </section>
+      <% } %>
+
+      <% if (newsletter.body) { %>
+        <section class="channel-section commercial-section">
+          <div class="article-content">
+            <p><%= midnight_value(newsletter.body, '') %></p>
+          </div>
+        </section>
+      <% } %>
+    </main>
+
+    <aside class="collection-sidebar inner-sidebar commercial-sidebar">
+      <% if (editions.length) { %>
+        <section class="sidebar-panel commercial-steps">
+          <h2><%= midnight_text('labels.newsletter_editions', 'Editions') %></h2>
+          <ol>
+            <% editions.forEach((item) => { %>
+              <li>
+                <strong><%= midnight_value(item.title, '') %></strong>
+                <span><%= midnight_value(item.description, '') %></span>
+              </li>
+            <% }) %>
+          </ol>
+        </section>
+      <% } %>
+
+      <%- partial('_partial/inner-sidebar', { variant: 'newsletter', showSponsored: false, showNewsletter: false }) %>
+    </aside>
+  </section>
+</article>
+
+<%- partial('_partial/comments') %>

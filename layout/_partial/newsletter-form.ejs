@@ -1,0 +1,68 @@
+<%
+const newsletterConfig = midnight_config('inner_pages.newsletter', {});
+const newsletterFormConfig = newsletterConfig.form || {};
+const newsletterFormVariant = typeof variant !== 'undefined' ? variant : 'panel';
+const newsletterFormClass = typeof className !== 'undefined' ? className : (newsletterFormVariant === 'hero' ? 'newsletter-hero-form' : 'newsletter-form');
+const newsletterFormAction = String(typeof action !== 'undefined' ? action : (newsletterFormConfig.action || '')).trim();
+const newsletterFormMethod = String(typeof method !== 'undefined' ? method : (page.form_method || newsletterFormConfig.method || 'post')).toLowerCase();
+const newsletterEmailName = typeof emailName !== 'undefined' ? emailName : (newsletterFormConfig.email_name || 'email');
+const newsletterNameName = newsletterFormConfig.name_name || '';
+const newsletterRequireName = newsletterFormConfig.require_name === true;
+const newsletterTarget = newsletterFormConfig.target || '';
+const newsletterAjax = newsletterFormConfig.ajax === true;
+const newsletterStatusId = 'newsletter-status-' + newsletterFormVariant;
+const newsletterPrivacy = typeof privacy !== 'undefined' ? privacy : midnight_value(newsletterConfig.privacy, '');
+const newsletterConsent = midnight_value(newsletterFormConfig.consent, '');
+const newsletterRequireConsent = newsletterFormConfig.require_consent === true;
+const newsletterHiddenRaw = newsletterFormConfig.hidden_fields || [];
+const newsletterHiddenFields = Array.isArray(newsletterHiddenRaw)
+  ? newsletterHiddenRaw
+  : Object.keys(newsletterHiddenRaw || {}).map((key) => ({ name: key, value: newsletterHiddenRaw[key] }));
+%>
+
+<% if (newsletterFormAction) { %>
+<form
+  class="<%- newsletterFormClass %>"
+  action="<%- newsletterFormAction %>"
+  method="<%- newsletterFormMethod === 'get' ? 'get' : 'post' %>"
+  <% if (newsletterTarget) { %>target="<%- newsletterTarget %>"<% } %>
+  <% if (newsletterAjax && newsletterFormAction) { %>data-newsletter-form<% } %>
+  data-success-message="<%= midnight_text('labels.newsletter_success', 'Subscription received.') %>"
+  data-error-message="<%= midnight_text('labels.newsletter_error', 'Subscription failed. Please try again later.') %>"
+  data-missing-message="<%= midnight_text('labels.newsletter_unavailable', 'Newsletter signup is not configured yet.') %>"
+  aria-describedby="<%- newsletterStatusId %>"
+>
+  <% newsletterHiddenFields.forEach((field) => { if (field && field.name) { %>
+    <input type="hidden" name="<%- field.name %>" value="<%= midnight_value(field.value, field.value || '') %>">
+  <% } }) %>
+  <% if (newsletterNameName) { %>
+    <input
+      type="text"
+      name="<%- newsletterNameName %>"
+      placeholder="<%= midnight_text('labels.newsletter_name_placeholder', 'Your name') %>"
+      aria-label="<%= midnight_text('labels.newsletter_name_label', 'Name') %>"
+      autocomplete="name"
+      <% if (newsletterRequireName) { %>required<% } %>
+    >
+  <% } %>
+  <input
+    type="email"
+    name="<%- newsletterEmailName %>"
+    placeholder="<%= midnight_text('labels.newsletter_placeholder', 'you@example.com') %>"
+    aria-label="<%= midnight_text('labels.newsletter_email_label', 'Email') %>"
+    autocomplete="email"
+    inputmode="email"
+    required
+  >
+  <button type="submit"><%= midnight_text('labels.subscribe', 'Subscribe') %></button>
+  <% if (newsletterConsent) { %>
+    <label class="newsletter-form__consent">
+      <input type="checkbox" name="consent" value="yes" <% if (newsletterRequireConsent) { %>required<% } %>>
+      <span><%= newsletterConsent %></span>
+    </label>
+  <% } %>
+</form>
+<small id="<%- newsletterStatusId %>" class="newsletter-form__status" aria-live="polite">
+  <%= newsletterPrivacy %>
+</small>
+<% } %>

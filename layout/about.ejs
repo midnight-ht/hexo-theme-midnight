@@ -1,0 +1,112 @@
+<%
+const about = midnight_config('inner_pages.about', {});
+const hasPageAboutContent = Boolean(page.content && strip_html(page.content).replace(/\s+/g, '').trim());
+const title = page.title || midnight_value(about.title, __('about'));
+const description = page.description || midnight_value(about.description, config.description || theme.description || '');
+const mission = midnight_value(about.mission, '');
+const principles = about.principles || [];
+const aboutMap = (about.map || []).slice(0, 4);
+const contact = midnight_value(about.contact, '');
+const body = midnight_value(about.body, '');
+const authorName = config.author || (theme.appearance && (theme.appearance.nick || theme.appearance.logo_text)) || config.title || 'midnight';
+const authorInitial = Array.from(String(authorName).trim())[0] || 'm';
+%>
+
+<article class="inner-page about-page">
+  <header class="inner-hero about-hero">
+    <div class="inner-hero__body">
+      <div class="inner-hero__kicker"><%= midnight_text('labels.about_kicker', 'About Midnight') %></div>
+      <h1><%= title %></h1>
+      <% if (description) { %>
+        <p><%= description %></p>
+      <% } %>
+      <div class="inner-hero__meta">
+        <span class="tag tag--about"><%= midnight_text('labels.about_kicker', 'About') %></span>
+        <span class="inner-hero__path">midnight / about</span>
+      </div>
+    </div>
+    <div class="inner-hero__cover" aria-hidden="true">
+      <i></i><i></i><i></i><i></i>
+    </div>
+  </header>
+
+  <section class="collection-layout inner-layout-v2">
+    <main class="collection-list">
+      <section class="channel-section about-block">
+        <div class="section-heading">
+          <h2><%= midnight_text('labels.about_mission', 'Mission') %></h2>
+          <p><%= midnight_text('labels.about_mission_description', '') %></p>
+        </div>
+        <% if (mission) { %>
+          <p class="about-lede"><%= mission %></p>
+        <% } %>
+        <% if (hasPageAboutContent) { %>
+          <div class="article-content">
+            <%- page.content %>
+          </div>
+        <% } else if (body) { %>
+          <div class="article-content">
+            <p><%= body %></p>
+          </div>
+        <% } %>
+      </section>
+
+      <% if (aboutMap.length) { %>
+        <section class="channel-section channel-map-section">
+          <div class="section-heading">
+            <h2><%= midnight_text('labels.about_map', 'About Map') %></h2>
+            <p><%= midnight_text('labels.about_map_description', '') %></p>
+          </div>
+          <div class="channel-map">
+            <% aboutMap.forEach((item) => { %>
+              <article class="channel-map__card">
+                <h3><%= midnight_value(item.title, '') %></h3>
+                <p><%= midnight_value(item.body, '') %></p>
+              </article>
+            <% }) %>
+          </div>
+        </section>
+      <% } %>
+
+      <% if (principles.length) { %>
+        <section class="channel-section about-block">
+          <div class="section-heading">
+            <h2><%= midnight_text('labels.about_principles', 'Principles') %></h2>
+            <p><%= midnight_text('labels.about_principles_description', '') %></p>
+          </div>
+          <div class="about-principles">
+            <% principles.forEach((item) => { %>
+              <article>
+                <h3><%= midnight_value(item.title, '') %></h3>
+                <p><%= midnight_value(item.description, '') %></p>
+              </article>
+            <% }) %>
+          </div>
+        </section>
+      <% } %>
+    </main>
+
+    <aside class="collection-sidebar inner-sidebar">
+      <section class="sidebar-panel author-panel">
+        <h2><%= midnight_text('labels.author', 'Author') %></h2>
+        <p><%= midnight_text('labels.author_description', '') %></p>
+        <div>
+          <span class="avatar avatar--large"><%= authorInitial %></span>
+          <strong><%= authorName %></strong>
+          <small><%= midnight_text('labels.publisher_role', 'Publisher / Editor') %></small>
+        </div>
+      </section>
+
+      <% if (contact) { %>
+        <section class="sidebar-panel">
+          <h2><%= midnight_text('labels.about_contact', 'Contact') %></h2>
+          <p><%= contact %></p>
+        </section>
+      <% } %>
+
+      <%- partial('_partial/inner-sidebar', { variant: 'about', showSponsored: false }) %>
+    </aside>
+  </section>
+</article>
+
+<%- partial('_partial/comments') %>

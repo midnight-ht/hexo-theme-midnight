@@ -1,0 +1,103 @@
+<%
+function paginationCollectionLength(value) {
+  if (!value) return 0;
+  if (typeof value.length === 'number') return value.length;
+  if (Array.isArray(value)) return value.length;
+  if (Array.isArray(value.data)) return value.data.length;
+  if (value.toArray) return value.toArray().length;
+  return 0;
+}
+
+const paginationPerPage = Number((typeof per_page !== 'undefined' && per_page) || (page && page.per_page) || 10);
+const paginationTotalItems = Number((typeof total_items !== 'undefined' && total_items) || paginationCollectionLength(typeof all_posts !== 'undefined' ? all_posts : (page && page.all_posts)));
+const paginationExplicitTotal = (typeof total !== 'undefined' && total) || (page && page.total);
+const paginationAllowDerivedTotal = typeof allow_derived_total !== 'undefined' && allow_derived_total;
+const paginationDerivedTotal = paginationPerPage > 0 && paginationTotalItems > paginationPerPage
+  ? Math.ceil(paginationTotalItems / paginationPerPage)
+  : 1;
+const paginationCurrent = Number((typeof current !== 'undefined' && current) || (page && page.current) || 1);
+const paginationTotal = Number(paginationExplicitTotal || (paginationAllowDerivedTotal ? paginationDerivedTotal : 1));
+const paginationPrev = (typeof prev_link !== 'undefined' && prev_link) || (page && page.prev_link) || '';
+const paginationNext = (typeof next_link !== 'undefined' && next_link) || (page && page.next_link) || '';
+const paginationLabel = typeof label !== 'undefined' ? label : __('archive');
+const paginationBasePath = (typeof base_path !== 'undefined' && base_path) || '';
+
+function cleanPaginationPath(value) {
+  return String(value || '')
+    .replace(/\\/g, '/')
+    .replace(/^\/+/, '')
+    .replace(/index\.html?$/i, '')
+    .replace(/\/?$/, '/');
+}
+
+function paginationRoute(value) {
+  const raw = String(value || '');
+  if (/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(raw)) return raw || '#';
+  return url_for('/' + cleanPaginationPath(raw));
+}
+
+function currentPaginationBase() {
+  if (paginationBasePath) return cleanPaginationPath(paginationBasePath);
+  const route = cleanPaginationPath((page && page.path) || '');
+  return route.replace(/page\/\d+\/$/i, '');
+}
+
+function pageHref(index) {
+  const base = currentPaginationBase();
+  return paginationRoute(index <= 1 ? base : `${base}page/${index}/`);
+}
+
+function numberedPages() {
+  const windowSize = 5;
+  const half = Math.floor(windowSize / 2);
+  let start = Math.max(1, paginationCurrent - half);
+  let end = Math.min(paginationTotal, start + windowSize - 1);
+  start = Math.max(1, end - windowSize + 1);
+  const pages = [];
+  if (start > 1) pages.push(1);
+  if (start > 2) pages.push('start-ellipsis');
+  for (let index = start; index <= end; index += 1) pages.push(index);
+  if (end < paginationTotal - 1) pages.push('end-ellipsis');
+  if (end < paginationTotal) pages.push(paginationTotal);
+  return pages;
+}
+%>
+<% if (paginationTotal > 1) { %>
+  <nav class="pagination archive-pagination" aria-label="<%= paginationLabel %>">
+    <ul class="pagination__list">
+      <li class="pagination__item pagination__item--control">
+        <% if (paginationPrev) { %>
+          <a class="pagination__link pagination__control" href="<%- paginationRoute(paginationPrev) %>" rel="prev"><%= midnight_text('labels.newer_posts', 'Newer Posts') %></a>
+        <% } else if (paginationCurrent > 1) { %>
+          <a class="pagination__link pagination__control" href="<%- pageHref(paginationCurrent - 1) %>" rel="prev"><%= midnight_text('labels.newer_posts', 'Newer Posts') %></a>
+        <% } else { %>
+          <span class="pagination__link pagination__control is-disabled" aria-disabled="true"><%= midnight_text('labels.newer_posts', 'Newer Posts') %></span>
+        <% } %>
+      </li>
+      <% numberedPages().forEach((index) => { %>
+        <% if (typeof index === 'string') { %>
+          <li class="pagination__item pagination__item--ellipsis">
+            <span class="pagination__link pagination__ellipsis" aria-hidden="true">...</span>
+          </li>
+        <% } else if (index === paginationCurrent) { %>
+          <li class="pagination__item is-current">
+            <span class="pagination__link" aria-current="page"><%= index %></span>
+          </li>
+        <% } else { %>
+          <li class="pagination__item">
+            <a class="pagination__link" href="<%- pageHref(index) %>"><%= index %></a>
+          </li>
+        <% } %>
+      <% }) %>
+      <li class="pagination__item pagination__item--control">
+        <% if (paginationNext) { %>
+          <a class="pagination__link pagination__control" href="<%- paginationRoute(paginationNext) %>" rel="next"><%= midnight_text('labels.older_posts', 'Older Posts') %></a>
+        <% } else if (paginationCurrent < paginationTotal) { %>
+          <a class="pagination__link pagination__control" href="<%- pageHref(paginationCurrent + 1) %>" rel="next"><%= midnight_text('labels.older_posts', 'Older Posts') %></a>
+        <% } else { %>
+          <span class="pagination__link pagination__control is-disabled" aria-disabled="true"><%= midnight_text('labels.older_posts', 'Older Posts') %></span>
+        <% } %>
+      </li>
+    </ul>
+  </nav>
+<% } %>

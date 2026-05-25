@@ -1,0 +1,1142 @@
+name: midnight
+description: A modern technology Hexo theme with AI session, i18n, sitemap, and comments support.
+
+favicon: /img/favicon.png
+apple_touch_icon: /img/favicon.png
+tab_title_separator: " | "
+force_https: false
+
+appearance:
+  logo: ""
+  logo_text: Midnight
+  nick: Midnight
+  accent: "#4df2c8"
+  default_scheme: dark
+  background: default
+
+nav:
+  home:
+    name: home
+    path: /
+  items:
+    - name: AI Agent
+      path: /tags/AI-Agent/
+      style: underline
+      active_match:
+        - /tags/AI-Agent/
+    - name:
+        zh-CN: 工程化
+        en: Engineering
+      path: /tags/Engineering/
+      style: underline
+      active_match:
+        - /tags/Engineering/
+    - name:
+        zh-CN: 商业观察
+        en: Business
+      path: /tags/Business/
+      style: underline
+      active_match:
+        - /tags/Business/
+    - name:
+        zh-CN: 产品
+        en: Product
+      path: /tags/Product/
+      style: underline
+      active_match:
+        - /tags/Product/
+    - name:
+        zh-CN: 专题
+        en: Topics
+      path: /tags/
+      style: text
+      active_exact: true
+      active_match:
+        - /tags/
+  archives:
+    name: archives
+    path: /archives/
+  about:
+    name: about
+    path: /about/
+
+i18n:
+  default_lang: zh-CN
+  route_strategy: auto
+  languages:
+    - zh-CN
+    - en
+  article_lang_field: lang
+  translation_key_field: translation_key
+
+model_session:
+  enabled: true
+  endpoint: ""
+  title:
+    zh-CN: AI 会话
+    en: AI Session
+  default_system_prompt: "You are a helpful technical reading assistant. Answer with concise, grounded context from the current article."
+  allow_user_system_prompt: true
+  max_messages: 12
+
+comments:
+  enabled: false
+  enable: false
+  provider: giscus
+  type: giscus
+  giscus:
+    repo: ""
+    repo_id: ""
+    category: ""
+    category_id: ""
+    mapping: pathname
+    reactions_enabled: "1"
+    emit_metadata: "0"
+    theme: preferred_color_scheme
+  waline:
+    server_url: ""
+    serverURL: ""
+    placeholder: ""
+    lang: zh-CN
+    page_size: 10
+  utterances:
+    repo: ""
+    issue_term: pathname
+    theme: github-dark
+    theme_dark: github-dark
+    label: ""
+    crossorigin: anonymous
+
+sitemap:
+  enabled: true
+  path: sitemap.xml
+
+feed:
+  enabled: true
+  path: atom.xml
+  title: RSS
+
+contact:
+  email: ht@zyweb.vip
+
+seo:
+  twitter_card: summary_large_image
+  open_graph: true
+  open_graph_image: ""
+  robots: index,follow
+  keywords: ""
+  baidu_site_verification: ""
+  google_site_verification: ""
+  bing_site_verification: ""
+
+web_analytics:
+  enabled: false
+  enable: false
+  baidu: ""
+  google: ""
+  gtag: ""
+  cnzz: ""
+  woyaola: ""
+  busuanzi:
+    enabled: false
+    enable: false
+  leancloud:
+    app_id: ""
+    app_key: ""
+    server_url: ""
+
+footer:
+  statistics:
+    enabled: false
+    enable: false
+    source: busuanzi
+    pv_format:
+      zh-CN: "总访问量 {} 次"
+      en: "{} page views"
+    uv_format:
+      zh-CN: "总访客数 {} 人"
+      en: "{} visitors"
+
+labels:
+  breaking:
+    zh-CN: 快讯
+    en: Breaking
+  utility_message:
+    zh-CN: Agent 工具正在从演示走向生产治理
+    en: Agent tooling is shifting from demos to production governance
+  subscribe:
+    zh-CN: 订阅
+    en: Subscribe
+  light:
+    zh-CN: 浅色
+    en: Light
+  dark:
+    zh-CN: 深色
+    en: Dark
+  switch_to_light:
+    zh-CN: 切换到浅色主题
+    en: Switch to light theme
+  switch_to_dark:
+    zh-CN: 切换到深色主题
+    en: Switch to dark theme
+  search:
+    zh-CN: 搜索
+    en: Search
+  mobile_menu:
+    zh-CN: 菜单
+    en: Menu
+  close_menu:
+    zh-CN: 关闭菜单
+    en: Close menu
+  primary_navigation:
+    zh-CN: 主导航
+    en: Primary
+  utility_navigation:
+    zh-CN: 工具导航
+    en: Utility
+  footer_sections_navigation:
+    zh-CN: 页脚栏目
+    en: Footer sections
+  powered_by:
+    zh-CN: Powered by Hexo
+    en: Powered by Hexo
+  code_copy:
+    zh-CN: 复制
+    en: Copy
+  code_copied:
+    zh-CN: 已复制
+    en: Copied
+  code_failed:
+    zh-CN: 复制失败
+    en: Failed
+  code_copy_label:
+    zh-CN: 复制代码
+    en: Copy code
+  code_copied_label:
+    zh-CN: 代码已复制
+    en: Code copied
+  search_placeholder:
+    zh-CN: 搜索报道 / 作者 / 专题
+    en: Search stories, authors, topics
+  skip_to_content:
+    zh-CN: 跳到正文
+    en: Skip to content
+  sponsored:
+    zh-CN: 赞助
+    en: Sponsored
+  editorial_pick:
+    zh-CN: 今日精选
+    en: Featured
+  editorial_kicker:
+    zh-CN: 编辑判断，而不只是时间线
+    en: Editorial judgement, not just timeline
+  story_label:
+    zh-CN: 深度
+    en: Deep Dive
+  secondary_title:
+    zh-CN: 次条与编辑补充
+    en: Secondary Stories
+  secondary_description:
+    zh-CN: 更多精选报道，精简排列，随时可扫读。
+    en: More curated stories, arranged for quick scanning.
+  channel_entry:
+    zh-CN: 频道入口
+    en: Channels
+  channel_entry_description:
+    zh-CN: 按主题快速进入长期内容线索。
+    en: Jump into long-running topic tracks.
+  editor_picks:
+    zh-CN: 编辑精选
+    en: Editor Picks
+  editor_picks_description:
+    zh-CN: 编辑精选，按主题深度与相关性挑选的重点内容。
+    en: Editor-selected reads, picked for topic depth and relevance.
+  latest_description:
+    zh-CN: 按发布时间倒序排列，持续更新。
+    en: Reverse chronological order, continuously updated.
+  popular:
+    zh-CN: 本周热门
+    en: Popular This Week
+  popular_description:
+    zh-CN: 高阅读量与编辑置顶共同决定的热度排名。
+    en: Ranked by reader engagement and editorial picks.
+  author:
+    zh-CN: 作者
+    en: Author
+  author_description:
+    zh-CN: 技术商业观察、AI Agent 与 Hexo 主题设计。
+    en: Technical publishing, AI agents, and Hexo theme design.
+  author_profile:
+    zh-CN: 查看作者档案
+    en: View Author Profile
+  publisher_role:
+    zh-CN: 发布者 / 编辑
+    en: Publisher / Editor
+  footer_sections:
+    zh-CN: 栏目
+    en: Sections
+  footer_channels:
+    zh-CN: 频道
+    en: Channels
+  footer_resources:
+    zh-CN: 资源
+    en: Resources
+  footer_meta:
+    zh-CN: 元信息
+    en: Meta
+  series:
+    zh-CN: 专题系列
+    en: Series
+  series_description:
+    zh-CN: 围绕长期主题聚合的深度系列，持续更新。
+    en: Long-running series organized around a persistent theme.
+  topic_entry:
+    zh-CN: 专题入口
+    en: Topic Entry
+  topic_entry_description:
+    zh-CN: 按主题聚合的深度内容入口，不受时间线限制。
+    en: Topic-anchored deep reads, beyond the timeline.
+  newsletter_description:
+    zh-CN: 每周一次，整理值得跟踪的技术商业变化。
+    en: A weekly brief on technical and business changes worth tracking.
+  read_count:
+    zh-CN: 阅读
+    en: Reads
+  comments_count:
+    zh-CN: 评论
+    en: Comments
+  editor_recommend:
+    zh-CN: 编辑推荐
+    en: Editor Pick
+  article:
+    zh-CN: 正文
+    en: Article
+  sidebar:
+    zh-CN: 侧栏
+    en: Sidebar
+  follow:
+    zh-CN: 关注
+    en: Follow
+  updated:
+    zh-CN: 更新于
+    en: Updated
+  estimated_read:
+    zh-CN: 预计阅读
+    en: Estimated read
+  minutes:
+    zh-CN: 分钟
+    en: min
+  toc:
+    zh-CN: 目录
+    en: Contents
+  toc_description:
+    zh-CN: 快速定位文章结构。
+    en: Quickly navigate the article structure.
+  toc_empty:
+    zh-CN: 暂无目录
+    en: No headings yet
+  related_topics:
+    zh-CN: 相关专题
+    en: Related Topics
+  related_topics_description:
+    zh-CN: 把当前文章放回长期跟踪线索里。
+    en: Place this article back into long-running themes.
+  continue_reading:
+    zh-CN: 继续阅读
+    en: Continue Reading
+  continue_reading_description:
+    zh-CN: 同一信息源下的延伸判断。
+    en: More editorial judgement from the same source.
+  archive_kicker:
+    zh-CN: 时间索引
+    en: Chronological Index
+  archive_description:
+    zh-CN: 按年份和月份浏览全部文章，并快速进入主题、分类和分页。
+    en: Browse every article by year and month, with quick links to topics, categories, and older pages.
+  posts:
+    zh-CN: 文章
+    en: Posts
+  years:
+    zh-CN: 年份
+    en: Years
+  topics:
+    zh-CN: 主题
+    en: Topics
+  latest:
+    zh-CN: 最新
+    en: Latest
+  view_more:
+    zh-CN: 查看更多
+    en: View More
+  newer_posts:
+    zh-CN: 较新的文章
+    en: Newer Posts
+  older_posts:
+    zh-CN: 更早的文章
+    en: Older Posts
+  previous_post:
+    zh-CN: 上一篇
+    en: Previous Post
+  next_post:
+    zh-CN: 下一篇
+    en: Next Post
+  post_navigation:
+    zh-CN: 文章导航
+    en: Post Navigation
+  share:
+    zh-CN: 分享
+    en: Share
+  share_on_x:
+    zh-CN: 分享到 X
+    en: Share on X
+  share_on_linkedin:
+    zh-CN: 分享到 LinkedIn
+    en: Share on LinkedIn
+  share_by_email:
+    zh-CN: 邮件分享
+    en: Share by Email
+  no_posts:
+    zh-CN: 暂无文章
+    en: No Posts Yet
+  no_posts_description:
+    zh-CN: 发布文章后，它们会按年份和月份出现在这里。
+    en: Once articles are published, they will appear here grouped by year and month.
+  comments_unavailable:
+    zh-CN: 评论暂不可用
+    en: Comments unavailable
+  comments_unavailable_description:
+    zh-CN: 评论已启用，但当前评论服务缺少必要配置。
+    en: Comments are enabled, but the selected provider is missing required configuration.
+  back_home:
+    zh-CN: 返回首页
+    en: Back Home
+  timeline_description:
+    zh-CN: 在发布时间线中快速跳转。
+    en: Jump through the publication timeline.
+  topics_description:
+    zh-CN: 归档中使用最多的标签。
+    en: Most-used tags across the archive.
+  categories_description:
+    zh-CN: 长期主题的更大书架。
+    en: Broader shelves for long-running subject areas.
+  no_tags:
+    zh-CN: 暂无标签
+    en: No tags yet
+  no_categories:
+    zh-CN: 暂无分类
+    en: No categories yet
+  about_kicker:
+    zh-CN: 关于 Midnight
+    en: About Midnight
+  about_mission:
+    zh-CN: 使命
+    en: Mission
+  about_mission_description:
+    zh-CN: 以静态优先方式，构建现代技术媒体需要的完整发布与阅读体验。
+    en: A static-first approach to the full publishing and reading experience modern technical media requires.
+  about_principles:
+    zh-CN: 原则
+    en: Principles
+  about_principles_description:
+    zh-CN: 指导 Midnight 每一个产品与设计决策的核心立场。
+    en: The core positions behind every product and design decision in Midnight.
+  about_contact:
+    zh-CN: 联系与合作
+    en: Contact
+  collection_kicker:
+    zh-CN: 频道
+    en: Channel
+  collection_featured:
+    zh-CN: 重点阅读
+    en: Featured Reading
+  collection_latest:
+    zh-CN: 最新内容
+    en: Latest Stories
+  collection_empty:
+    zh-CN: 暂无内容
+    en: No stories yet
+  collection_empty_description:
+    zh-CN: 当前频道发布文章后，会自动出现在这里。
+    en: Stories will appear here after they are published in this channel.
+  channel_map:
+    zh-CN: 频道地图
+    en: Channel Map
+  channel_map_description:
+    zh-CN: 频道内容按主题模块分类，便于深度阅读与持续追踪。
+    en: Content organized by topic for deeper reading and consistent tracking.
+  channel_featured:
+    zh-CN: 频道精选
+    en: Channel Featured
+  channel_featured_description:
+    zh-CN: 频道头条与主编重点判断。
+    en: The lead story and the editor's headline pick.
+  channel_latest:
+    zh-CN: 最新文章
+    en: Latest Articles
+  channel_latest_description:
+    zh-CN: 频道最新发布，按时间倒序排列。
+    en: The latest articles from this channel, newest first.
+  archive_map:
+    zh-CN: 归档地图
+    en: Archive Map
+  archive_map_description:
+    zh-CN: "全站内容的结构快照：文章总数、年份跨度与主题覆盖。"
+    en: "A structural snapshot: article count, years spanned, and topics covered."
+  archive_featured:
+    zh-CN: 归档精选
+    en: Archive Featured
+  archive_featured_description:
+    zh-CN: 归档中最新或编辑精选的代表性内容。
+    en: The most recent or editor-recommended entry from the archive.
+  about_map:
+    zh-CN: 关于地图
+    en: About Map
+  about_map_description:
+    zh-CN: Midnight 核心功能方向与设计立场的概览。
+    en: An overview of Midnight's feature tracks and design positions.
+  channel_entries:
+    zh-CN: 专题入口
+    en: Topic Entries
+  channel_entries_description:
+    zh-CN: 按主题浏览全站所有频道与专题的内容入口。
+    en: Browse every channel and topic across the site by subject.
+  popular_reads:
+    zh-CN: 热门阅读
+    en: Popular Reads
+  popular_reads_description:
+    zh-CN: 编辑置顶 + 读者反馈共同生成。
+    en: Editor pins combined with reader signals.
+  sidebar_ad_label:
+    zh-CN: 频道赞助位
+    en: Channel Sponsored Slot
+  sidebar_ad_tip:
+    zh-CN: 广告 / Sponsored / 推广
+    en: Ads / Sponsored / Promotion
+  advertise_kicker:
+    zh-CN: 广告合作
+    en: Advertise
+  advertise_audience:
+    zh-CN: 受众概览
+    en: Audience
+  advertise_placements:
+    zh-CN: 合作版位
+    en: Placements
+  advertise_placements_description:
+    zh-CN: 为品牌曝光、原生内容和长期专题合作预留清晰边界。
+    en: Clear placements for brand awareness, native content, and long-running sponsorships.
+  advertise_contact:
+    zh-CN: 获取合作资料
+    en: Contact
+  advertise_contact_cta:
+    zh-CN: 联系合作
+    en: Contact sales
+  advertise_process:
+    zh-CN: 合作流程
+    en: Process
+  advertise_guidelines:
+    zh-CN: 合作原则
+    en: Guidelines
+  newsletter_kicker:
+    zh-CN: 订阅通讯
+    en: Newsletter
+  newsletter_placeholder:
+    zh-CN: you@example.com
+    en: you@example.com
+  newsletter_email_label:
+    zh-CN: 邮箱
+    en: Email
+  newsletter_name_placeholder:
+    zh-CN: 你的名字
+    en: Your name
+  newsletter_name_label:
+    zh-CN: 姓名
+    en: Name
+  newsletter_success:
+    zh-CN: 已收到订阅请求，请查收确认邮件。
+    en: Subscription received. Please check your inbox to confirm.
+  newsletter_error:
+    zh-CN: 提交失败，请稍后再试。
+    en: Subscription failed. Please try again later.
+  newsletter_unavailable:
+    zh-CN: 订阅通道尚未配置。
+    en: Newsletter signup is not configured yet.
+  newsletter_benefits:
+    zh-CN: 你会收到什么
+    en: What you get
+  newsletter_benefits_description:
+    zh-CN: 把技术、产品和商业化变化整理成可以直接行动的摘要。
+    en: Technical, product, and commercialization shifts distilled into an actionable brief.
+  newsletter_editions:
+    zh-CN: 发送节奏
+    en: Editions
+  privacy_kicker:
+    zh-CN: 隐私
+    en: Privacy
+  privacy_updated:
+    zh-CN: 最近更新
+    en: Last updated
+  privacy_summary:
+    zh-CN: 摘要
+    en: Summary
+  series_count_unit:
+    zh-CN: 篇
+    en: posts
+
+home:
+  channels:
+    - AI Agent
+    - Engineering
+    - Business
+    - Product
+    - Research
+    - Opinion
+    - Hexo Theme
+  series:
+    - name: AI Agent
+      count: 12
+    - name: Hexo Theme Lab
+      count: 8
+    - name: Engineering
+      count: 6
+    - name: Product
+      count: 4
+  sponsors:
+    top:
+      title:
+        zh-CN: 顶部品牌横幅广告 · 1280x88
+        en: Top brand banner · 1280x88
+      description:
+        zh-CN: 广告 / Sponsored / 推广
+        en: Ads / Sponsored / Promotion
+    native:
+      title:
+        zh-CN: 原生广告位 · 752x128
+        en: Native ad slot · 752x128
+      description:
+        zh-CN: 广告位保持清晰边界，避免和编辑内容混淆。
+        en: Sponsored placements keep a clear boundary from editorial content.
+    side:
+      title:
+        zh-CN: 侧栏广告位
+        en: Sidebar ad slot
+      description: 292x146
+
+post:
+  sponsor:
+    title:
+      zh-CN: 正文顶部赞助位 · Post Top Sponsored
+      en: Post top sponsored slot
+    description:
+      zh-CN: 广告 / Sponsored / 推广
+      en: Ads / Sponsored / Promotion
+  related:
+    - name: AI Agent
+      count: 12
+    - name: Engineering
+      count: 6
+    - name: Business
+      count: 8
+
+inner_pages:
+  about:
+    title:
+      zh-CN: 关于 Midnight
+      en: About Midnight
+    description:
+      zh-CN: Midnight 面向技术发布者，帮助长文、多语言内容、AI 阅读助手和商业化模块保持同一套清晰体验。
+      en: Midnight helps technical publishers keep articles, multilingual content, AI reading, and monetization modules in one coherent experience.
+    mission:
+      zh-CN: 用静态优先的 Hexo 工作流，承载现代技术媒体需要的首页、归档、专题和阅读辅助能力。
+      en: Build a static-first Hexo workflow that supports the homepage, archives, topics, and reading assistance expected from a modern technical publication.
+    principles:
+      - title:
+          zh-CN: 静态优先
+          en: Static first
+        description:
+          zh-CN: 没有后端也能完整阅读；动态功能保持可选。
+          en: Reading works without a backend; dynamic features stay optional.
+      - title:
+          zh-CN: 显式多语言
+          en: Explicit i18n
+        description:
+          zh-CN: 语言、翻译关系和路由策略都由配置与 front matter 明确表达。
+          en: Language, translation relationships, and route strategy are expressed through config and front matter.
+      - title:
+          zh-CN: 克制现代
+          en: Modern restraint
+        description:
+          zh-CN: 视觉要有技术感，但不喧宾夺主。
+          en: The interface should feel technical without overwhelming the reading.
+    contact:
+      zh-CN: 可在 about 页面正文中补充团队、社交链接、合作方式和版权说明。
+      en: Add team details, social links, collaboration notes, and copyright copy in the about page body.
+    map:
+      - title:
+          zh-CN: 静态优先工作流
+          en: Static-first workflow
+        body:
+          zh-CN: 静态托管 + 构建期 i18n + 可选动态能力。
+          en: Static hosting, build-time i18n, and optional dynamic features.
+      - title:
+          zh-CN: 编辑判断
+          en: Editorial judgement
+        body:
+          zh-CN: 频道、精选、地图取代纯时间流。
+          en: Channels, picks, and maps replace pure chronology.
+      - title:
+          zh-CN: 商业化模块
+          en: Monetization modules
+        body:
+          zh-CN: 广告、订阅、专题入口保持视觉清晰。
+          en: Ads, subscriptions, and topic entries stay visually clean.
+      - title:
+          zh-CN: 多语言体验
+          en: Multilingual experience
+        body:
+          zh-CN: ZH / EN 共用一套主题，路由策略由配置驱动。
+          en: ZH / EN share one theme, route strategy driven by config.
+  advertise:
+    title:
+      zh-CN: 广告合作
+      en: Advertise with Midnight
+    description:
+      zh-CN: 面向技术读者、产品团队和商业决策者的赞助合作页面，清晰呈现版位、流程和编辑边界。
+      en: Reach technical readers, product teams, and business decision makers through clearly marked sponsorships.
+    stats:
+      - value: 42k
+        label:
+          zh-CN: 月度技术读者
+          en: monthly technical readers
+      - value: 68%
+        label:
+          zh-CN: 工程、产品与创始人受众
+          en: engineers, product leads, and founders
+      - value: 2.8x
+        label:
+          zh-CN: 长文平均停留提升
+          en: longer-form attention lift
+      - value: ZH / EN
+        label:
+          zh-CN: 双语发行与主题页承载
+          en: bilingual publishing and topic pages
+    placements:
+      - badge:
+          zh-CN: Brand
+          en: Brand
+        title:
+          zh-CN: 顶部品牌横幅
+          en: Top brand banner
+        description:
+          zh-CN: 适合发布会、白皮书、开发者活动和新品曝光。
+          en: For launches, whitepapers, developer events, and product awareness.
+        meta:
+          zh-CN: 首页顶部、文章顶部可选
+          en: Optional homepage and post-top inventory
+      - badge:
+          zh-CN: Native
+          en: Native
+        title:
+          zh-CN: 原生赞助卡片
+          en: Native sponsored card
+        description:
+          zh-CN: 与编辑内容保持边界，同时贴近读者的信息流场景。
+          en: Clearly separated from editorial content while fitting the reader flow.
+        meta:
+          zh-CN: 适合报告、工具和案例
+          en: Good for reports, tools, and cases
+      - badge:
+          zh-CN: Topic
+          en: Topic
+        title:
+          zh-CN: 专题合作
+          en: Topic sponsorship
+        description:
+          zh-CN: 围绕长期技术议题做多篇内容、频道入口和站内推荐。
+          en: Multi-post campaigns around a durable technical topic.
+        meta:
+          zh-CN: 可与标签页和专题页组合
+          en: Can pair with tag and topic pages
+      - badge:
+          zh-CN: Sidebar
+          en: Sidebar
+        title:
+          zh-CN: 侧栏展示位
+          en: Sidebar placement
+        description:
+          zh-CN: 在文章、频道和内页提供稳定展示，适合轻量转化。
+          en: Persistent visibility across articles, channels, and inner pages.
+        meta:
+          zh-CN: 适合订阅、试用和活动
+          en: Good for trials, events, and signups
+    process:
+      - zh-CN: 确认目标受众、投放周期和素材规格。
+        en: Align audience, campaign window, and creative requirements.
+      - zh-CN: 预览版位与标注方式，确保赞助边界清晰。
+        en: Preview placement and sponsorship labels before publishing.
+      - zh-CN: 上线后复盘曝光、点击和内容反馈。
+        en: Review impressions, clicks, and content feedback after launch.
+    guidelines:
+      - zh-CN: 所有商业内容必须明确标注 Sponsored / 广告 / 推广。
+        en: Every commercial placement must be clearly marked as sponsored.
+      - zh-CN: 不接受误导性声明、暗示性背书或混淆编辑判断的内容。
+        en: No misleading claims, implied endorsement, or blurred editorial judgement.
+      - zh-CN: 第三方脚本建议由站点层接入，并遵守隐私与同意规则。
+        en: Third-party scripts should be handled at site level with privacy consent.
+    contact:
+      email: ht@zyweb.vip
+      label:
+        zh-CN: 发送合作需求
+        en: Send campaign brief
+      description:
+        zh-CN: 请附上品牌、目标受众、周期、预算区间和希望承载的内容类型。
+        en: Include brand, audience, timing, budget range, and preferred content format.
+  newsletter:
+    title:
+      zh-CN: 订阅 Midnight 通讯
+      en: Subscribe to Midnight
+    description:
+      zh-CN: 每周一次，把 AI Agent、技术商业化、产品和主题运营中的关键变化整理成可快速阅读的简报。
+      en: A weekly brief on AI agents, technical commercialization, product judgement, and publishing operations.
+    privacy:
+      zh-CN: 只发送通讯，不出售邮箱；取消订阅入口应由站点接入的邮件服务提供。
+      en: Newsletter only. No resale of email addresses; unsubscribe is handled by the connected mail service.
+    form:
+      action: ""
+      method: post
+      email_name: email
+      name_name: ""
+      require_name: false
+      ajax: false
+      target: ""
+      hidden_fields: {}
+      consent: ""
+      require_consent: false
+    benefits:
+      - badge:
+          zh-CN: Signals
+          en: Signals
+        title:
+          zh-CN: 技术与商业信号
+          en: Technical and business signals
+        description:
+          zh-CN: 过滤噪音，留下值得跟踪的发布、趋势和案例。
+          en: Filter noise into launches, trends, and cases worth tracking.
+      - badge:
+          zh-CN: Reading
+          en: Reading
+        title:
+          zh-CN: 本周深读
+          en: Weekly deep reads
+        description:
+          zh-CN: 选出站内外长文，并补充为什么值得读。
+          en: Curated long reads with the reason each one matters.
+      - badge:
+          zh-CN: Ops
+          en: Ops
+        title:
+          zh-CN: 媒体与增长运营
+          en: Publishing and growth ops
+        description:
+          zh-CN: 关注 SEO、广告、订阅、专题和多语内容的实际做法。
+          en: Practical notes on SEO, ads, subscriptions, topics, and multilingual publishing.
+      - badge:
+          zh-CN: Tools
+          en: Tools
+        title:
+          zh-CN: 工具和工作流
+          en: Tools and workflows
+        description:
+          zh-CN: 记录可以改进写作、研究和发布效率的工具链。
+          en: Tooling that improves writing, research, and publishing throughput.
+    editions:
+      - title:
+          zh-CN: 每周简报
+          en: Weekly brief
+        description:
+          zh-CN: 每周固定发送一次。
+          en: Sent once per week.
+      - title:
+          zh-CN: 专题加刊
+          en: Topic extra
+        description:
+          zh-CN: 重大发布、专题收束或案例复盘时发送。
+          en: Sent for major launches, topic wrap-ups, or case reviews.
+  privacy:
+    title:
+      zh-CN: 隐私政策
+      en: Privacy Policy
+    description:
+      zh-CN: 说明本站如何处理访问、订阅、评论、广告合作和第三方集成中可能涉及的数据。
+      en: How this site handles data related to visits, subscriptions, comments, sponsorships, and third-party integrations.
+    summary:
+      zh-CN: Midnight 默认静态优先，不要求用户登录；订阅、评论、广告和分析等能力应由站点所有者按需接入并明确披露。
+      en: Midnight is static-first by default and does not require login; subscriptions, comments, ads, and analytics should be connected and disclosed by the site owner.
+    updated:
+      zh-CN: 2026-05-19
+      en: May 19, 2026
+    sections:
+      - title:
+          zh-CN: 我们收集什么
+          en: What we collect
+        description:
+          zh-CN: 主题本身不建立用户账户，也不默认收集个人身份信息。若站点启用评论、通讯订阅、搜索、广告或统计服务，相关数据由站点配置的第三方或自有服务处理。
+          en: The theme itself does not create user accounts or collect personal identity data by default. If comments, newsletter signup, search, ads, or analytics are enabled, data is handled by the configured third-party or site-owned service.
+      - title:
+          zh-CN: 订阅通讯
+          en: Newsletter subscriptions
+        description:
+          zh-CN: 通讯表单只是前端入口。邮箱、退订状态和投递记录应由站点接入的邮件服务保存，并在实际使用时提供退订方式。
+          en: Newsletter forms are frontend entry points. Email addresses, unsubscribe state, and delivery records should be stored by the connected mail service, with an unsubscribe method provided in real use.
+      - title:
+          zh-CN: 评论与互动
+          en: Comments and interactions
+        description:
+          zh-CN: 若启用 Giscus、Waline、Utterances 或其他评论系统，评论内容、账号标识和互动记录会遵循对应服务的隐私规则。
+          en: If Giscus, Waline, Utterances, or another comment system is enabled, comment content, account identifiers, and interaction records follow that service's privacy rules.
+      - title:
+          zh-CN: 广告与赞助
+          en: Ads and sponsorships
+        description:
+          zh-CN: 主题提供清晰标注的广告展示位。若站点接入广告网络或追踪脚本，应遵守当地隐私、同意和披露要求。
+          en: The theme provides clearly marked ad placements. If ad networks or tracking scripts are added, the site should follow local privacy, consent, and disclosure requirements.
+      - title:
+          zh-CN: Cookie 与本地存储
+          en: Cookies and local storage
+        description:
+          zh-CN: 主题可能使用本地存储、会话存储、Cookie 或 window.name 保存颜色主题偏好，不用于跨站追踪。
+          en: The theme may use local storage, session storage, cookies, or window.name to remember color-scheme preference, not for cross-site tracking.
+      - title:
+          zh-CN: 联系方式
+          en: Contact
+        description:
+          zh-CN: 如需查询、更正或删除由站点服务保存的信息，请联系站点所有者，并说明相关页面、邮箱或评论账号。
+          en: To access, correct, or delete information stored by site services, contact the site owner with the relevant page, email address, or comment account.
+  popular_reads:
+    - title:
+        zh-CN: AI Agent 商业化路线图
+        en: AI Agent commercialization roadmap
+      meta:
+        zh-CN: 12.8k 阅读 · 编辑推荐
+        en: 12.8k reads · Editor pick
+    - title:
+        zh-CN: Hexo 主题变现结构
+        en: Hexo theme monetization structure
+      meta:
+        zh-CN: 9.4k 阅读 · 编辑推荐
+        en: 9.4k reads · Editor pick
+    - title:
+        zh-CN: 内容站增长实验
+        en: Content site growth experiments
+      meta:
+        zh-CN: 7.6k 阅读 · 长期跟踪
+        en: 7.6k reads · Long-running
+    - title:
+        zh-CN: 商业信息源首页设计复盘
+        en: Designing a commercial publication homepage
+      meta:
+        zh-CN: 6.2k 阅读 · 编辑复盘
+        en: 6.2k reads · Editorial review
+  series_entries:
+    - label:
+        zh-CN: Agent 工程化
+        en: Agent Engineering
+      path: /tags/AI-Agent/
+      count: 12
+    - label:
+        zh-CN: 商业观察
+        en: Business
+      path: /tags/Business/
+      count: 10
+    - label:
+        zh-CN: Hexo 主题实战
+        en: Hexo Theme Lab
+      path: /tags/Hexo-Theme/
+      count: 8
+    - label:
+        zh-CN: 产品评测
+        en: Product Reviews
+      path: /tags/Product/
+      count: 6
+  collections:
+    - name: AI Agent
+      path: /tags/AI-Agent/
+      description:
+        zh-CN: 跟踪智能体产品、工程化落地、治理和企业级工作流。
+        en: Coverage of agent products, engineering rollout, governance, and enterprise workflows.
+      kicker:
+        zh-CN: AI AGENT
+        en: AI AGENT
+      accent: "#7c3aed"
+      map:
+        - title:
+            zh-CN: 提示工程
+            en: Prompt engineering
+          body:
+            zh-CN: Prompt 设计、上下文、Chain。
+            en: Prompts, context, and chains.
+        - title:
+            zh-CN: AI 工具链
+            en: AI tooling
+          body:
+            zh-CN: Cursor、Claude Code、API。
+            en: Cursor, Claude Code, and the API surface.
+        - title:
+            zh-CN: 业务构建
+            en: Business build
+          body:
+            zh-CN: 场景设计、流程接入、测试。
+            en: Scenarios, integration, and validation.
+        - title:
+            zh-CN: 落地实践
+            en: Field practice
+          body:
+            zh-CN: 案例、ROI、团队适配。
+            en: Case studies, ROI, and team fit.
+    - name: Engineering
+      label:
+        zh-CN: 工程化
+        en: Engineering
+      path: /tags/Engineering/
+      description:
+        zh-CN: 围绕 AI Coding、规格驱动、测试、部署和团队协作的工程化频道。
+        en: AI coding, spec-driven delivery, testing, deployment, and engineering collaboration.
+      kicker:
+        zh-CN: ENGINEERING
+        en: ENGINEERING
+      accent: "#2563eb"
+      map:
+        - title:
+            zh-CN: 需求与规格
+            en: Requirements & specs
+          body:
+            zh-CN: PRD、SDD、验收标准。
+            en: PRDs, SDDs, and acceptance criteria.
+        - title:
+            zh-CN: 开发工具链
+            en: Developer toolchain
+          body:
+            zh-CN: Cursor、Claude Code、Codex。
+            en: Cursor, Claude Code, and Codex.
+        - title:
+            zh-CN: 测试与质量
+            en: Testing & quality
+          body:
+            zh-CN: TDD、自动化测试、质量门禁。
+            en: TDD, automation, and quality gates.
+        - title:
+            zh-CN: 部署与运维
+            en: Delivery & operations
+          body:
+            zh-CN: CI/CD、观测、回滚。
+            en: CI/CD, observability, and rollbacks.
+    - name: Business
+      label:
+        zh-CN: 商业观察
+        en: Business
+      path: /tags/Business/
+      description:
+        zh-CN: 观察技术商业化、媒体运营、广告与订阅模型。
+        en: Notes on technical commercialization, media operations, advertising, and subscription models.
+      kicker:
+        zh-CN: BUSINESS
+        en: BUSINESS
+      accent: "#059669"
+      map:
+        - title:
+            zh-CN: 商业模式
+            en: Business models
+          body:
+            zh-CN: 订阅、广告、变现路径。
+            en: Subscriptions, advertising, and revenue paths.
+        - title:
+            zh-CN: 内容产品
+            en: Content product
+          body:
+            zh-CN: 选题、制作、分发、留存。
+            en: Topics, production, distribution, and retention.
+        - title:
+            zh-CN: 增长与变现
+            en: Growth & revenue
+          body:
+            zh-CN: SEO、Newsletter、付费墙。
+            en: SEO, newsletter, and paywall.
+        - title:
+            zh-CN: 行业分析
+            en: Industry analysis
+          body:
+            zh-CN: 案例拆解、趋势研判。
+            en: Case studies and trend reads.
+    - name: Product
+      label:
+        zh-CN: 产品
+        en: Product
+      path: /tags/Product/
+      description:
+        zh-CN: 记录产品判断、体验设计、增长和发布节奏。
+        en: Product judgement, experience design, growth, and launch cadence.
+      kicker:
+        zh-CN: PRODUCT
+        en: PRODUCT
+      accent: "#0891b2"
+      map:
+        - title:
+            zh-CN: 需求与设计
+            en: Requirements & design
+          body:
+            zh-CN: PRD、原型、UX。
+            en: PRDs, prototypes, and UX.
+        - title:
+            zh-CN: 用户增长
+            en: User growth
+          body:
+            zh-CN: 获客、激活、留存。
+            en: Acquisition, activation, retention.
+        - title:
+            zh-CN: 产品策略
+            en: Product strategy
+          body:
+            zh-CN: 定位、路线图、决策。
+            en: Positioning, roadmaps, and decisions.
+        - title:
+            zh-CN: 案例分析
+            en: Case analysis
+          body:
+            zh-CN: 产品拆解、竞品研究。
+            en: Product teardowns and competitive notes.
+    - name: Series
+      label:
+        zh-CN: 专题
+        en: Series
+      path: /categories/Series/
+      description:
+        zh-CN: 把单篇文章组织成长期专题，让内容从时间流变成持续消费的资产。
+        en: Organize articles into long-running series so content compounds beyond a timeline.
+      kicker:
+        zh-CN: SERIES
+        en: SERIES
+      accent: "#4f46e5"
+      map:
+        - title:
+            zh-CN: AI Agent 工程化
+            en: AI Agent engineering
+          body:
+            zh-CN: Prompt、工具链、Harness 到业务交付。
+            en: From prompts and toolchains to business delivery.
+        - title:
+            zh-CN: 商业技术观察
+            en: Tech business watch
+          body:
+            zh-CN: 信息产品、内容业务、平台化业务报道。
+            en: Information products, content business, and platform coverage.
+        - title:
+            zh-CN: Hexo 主题开发
+            en: Hexo theme lab
+          body:
+            zh-CN: 主题、广告、i18n、SEO 与组件体系。
+            en: Themes, ads, i18n, SEO, and component systems.
+        - title:
+            zh-CN: 产品方法库
+            en: Product method library
+          body:
+            zh-CN: 工具评测、范例解构、商业化设计。
+            en: Tooling reviews, design teardowns, and monetization patterns.

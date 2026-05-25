@@ -1,0 +1,35 @@
+<%
+const pageRouteParts = String(page.path || '').replace(/index\.html?$/i, '').replace(/^\/+/, '').split('/').filter(Boolean);
+const pageRouteNoLang = pageRouteParts.filter((part) => !((theme.i18n && theme.i18n.languages) || []).includes(part));
+const isAboutPage = /(^|\/)about\/?$/i.test(pageRouteNoLang.join('/'));
+const isAdvertisePage = /(^|\/)advertise\/?$/i.test(pageRouteNoLang.join('/'));
+const isNewsletterPage = /(^|\/)newsletter\/?$/i.test(pageRouteNoLang.join('/'));
+const isPrivacyPage = /(^|\/)privacy\/?$/i.test(pageRouteNoLang.join('/'));
+const isTagPage = pageRouteNoLang[0] === 'tags' && pageRouteNoLang[1];
+const isCategoryPage = pageRouteNoLang[0] === 'categories' && pageRouteNoLang[1];
+%>
+<% if (isAboutPage) { %>
+  <%- partial('about') %>
+<% } else if (isAdvertisePage) { %>
+  <%- partial('advertise') %>
+<% } else if (isNewsletterPage) { %>
+  <%- partial('newsletter') %>
+<% } else if (isPrivacyPage) { %>
+  <%- partial('privacy') %>
+<% } else if (isTagPage) { %>
+  <%- partial('_partial/collection-page', { collectionType: 'tag' }) %>
+<% } else if (isCategoryPage) { %>
+  <%- partial('_partial/collection-page', { collectionType: 'category' }) %>
+<% } else { %>
+  <article class="article">
+    <header class="article-header">
+      <h1><%= page.title %></h1>
+      <%- partial('_partial/language-switcher') %>
+    </header>
+    <div class="article-content">
+      <%- page.content %>
+    </div>
+  </article>
+
+  <%- partial('_partial/comments') %>
+<% } %>

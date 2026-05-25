@@ -1,0 +1,251 @@
+<%
+const postTags = page.tags && page.tags.data ? page.tags.data : [];
+const postCategories = page.categories && page.categories.data ? page.categories.data : [];
+const primaryTag = postTags.length ? postTags[0].name : (postCategories.length ? postCategories[0].name : 'AI Agent');
+const authorName = config.author || (theme.appearance && (theme.appearance.nick || theme.appearance.logo_text)) || 'midnight';
+const authorInitial = Array.from(String(authorName).trim())[0] || 'm';
+const plainContent = strip_html(page.content || '').replace(/\s+/g, ' ').trim();
+const description = midnight_excerpt(page, 150);
+const wordCount = plainContent ? plainContent.length : 0;
+const readMinutes = Math.max(1, Math.ceil(wordCount / 500));
+const updatedDate = page.updated || page.date;
+const relatedTopics = midnight_config('post.related', []);
+const newsletterFormAction = String(midnight_config('inner_pages.newsletter.form.action', '') || '').trim();
+const headingMatches = [];
+const usedHeadingIds = {};
+
+function configText(path, fallback) {
+  return midnight_text(path, fallback);
+}
+
+function slugHeading(text, index) {
+  const base = String(text || '')
+    .trim()
+    .toLowerCase()
+    .replace(/&[a-z0-9#]+;/gi, '')
+    .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-')
+    .replace(/^-|-$/g, '') || `section-${index + 1}`;
+  const count = usedHeadingIds[base] || 0;
+  usedHeadingIds[base] = count + 1;
+  return count ? `${base}-${count + 1}` : base;
+}
+
+const articleContent = String(page.content || '').replace(/<h([1-3])([^>]*)>([\s\S]*?)<\/h\1>/gi, (match, level, attrs, text) => {
+  const plainHeading = strip_html(text).trim();
+  if (!plainHeading) return match;
+  const idMatch = attrs.match(/\sid=["']([^"']+)["']/i);
+  const id = idMatch ? idMatch[1] : slugHeading(plainHeading, headingMatches.length);
+  headingMatches.push({ level, id, text: plainHeading });
+  if (idMatch) return match;
+  return `<h${level}${attrs} id="${id}">${text}</h${level}>`;
+});
+const tocItems = headingMatches.slice(0, 8);
+const allPosts = site.posts && site.posts.toArray ? site.posts.toArray() : [];
+const relatedPosts = allPosts.filter((post) => post.path !== page.path).slice(0, 3);
+const navPosts = [
+  { post: page.prev, label: configText('labels.previous_post', 'Previous Post'), direction: 'prev' },
+  { post: page.next, label: configText('labels.next_post', 'Next Post'), direction: 'next' }
+].filter((item) => item.post);
+const shareUrl = midnight_canonical_url(page);
+const shareTitle = String(page.title || config.title || '');
+const shareTargets = [
+  {
+    label: configText('labels.share_on_x', 'Share on X'),
+    text: 'X',
+    url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`
+  },
+  {
+    label: configText('labels.share_on_linkedin', 'Share on LinkedIn'),
+    text: 'in',
+    url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`
+  },
+  {
+    label: configText('labels.share_by_email', 'Share by Email'),
+    text: '@',
+    url: `mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(shareUrl)}`
+  }
+];
+
+function tagClass(label) {
+  return String(label || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'ai-agent';
+}
+
+function postUrl(post) {
+  return midnight_i18n_url(post.path);
+}
+
+function tagUrl(label) {
+  return midnight_i18n_url('/tags/' + encodeURIComponent(String(label).replace(/\s+/g, '-')) + '/');
+}
+
+function categoryUrl(label) {
+  return midnight_i18n_url('/categories/' + encodeURIComponent(String(label).replace(/\s+/g, '-')) + '/');
+}
+%>
+
+<article class="post-detail">
+  <header class="post-hero">
+    <div class="post-hero__kicker">
+      <span class="tag tag--<%= tagClass(primaryTag) %>"><%= primaryTag %></span>
+      <time datetime="<%= date_xml(page.date) %>"><%= date(page.date, 'YYYY-MM-DD') %></time>
+    </div>
+
+    <h1><%= page.title %></h1>
+
+    <% if (description) { %>
+      <p class="post-hero__summary"><%= description %></p>
+    <% } %>
+
+    <div class="post-hero__meta">
+      <div class="post-author-card">
+        <span class="avatar avatar--large"><%= authorInitial %></span>
+        <span>
+          <strong><%= authorName %></strong>
+          <small><%= configText('labels.author_description', '') %></small>
+        </span>
+        <a href="<%- midnight_i18n_url('/about/') %>"><%= configText('labels.follow', 'Follow') %></a>
+      </div>
+      <div class="post-metrics">
+        <span><%= configText('labels.read_count', 'Reads') %> <%= Math.max(1, Math.round(wordCount / 100)) %>.8k</span>
+        <span><%= configText('labels.comments_count', 'Comments') %> 126</span>
+        <small><%= configText('labels.updated', 'Updated') %> <%= date(updatedDate, 'YYYY-MM-DD') %> · <%= configText('labels.estimated_read', 'Estimated read') %> <%= readMinutes %> <%= configText('labels.minutes', 'min') %></small>
+      </div>
+    </div>
+
+    <div class="post-cover" aria-hidden="true">
+      <i></i><i></i><i></i><i></i><i></i>
+    </div>
+
+    <%- partial('_partial/language-switcher') %>
+  </header>
+
+  <div class="post-layout">
+    <main class="post-body">
+      <p class="post-body__label"><%= configText('labels.article', 'Article') %></p>
+
+      <section class="post-sponsored" aria-label="<%= configText('labels.sponsored', 'Sponsored') %>">
+        <span><%= configText('labels.sponsored', 'Sponsored') %></span>
+        <strong><%= configText('post.sponsor.title', 'Post top sponsored slot') %></strong>
+        <small><%= configText('post.sponsor.description', '') %></small>
+      </section>
+
+      <div class="article-content">
+        <%- articleContent %>
+      </div>
+
+      <% if (postTags.length) { %>
+        <footer class="article-taxonomy">
+          <span><%= __('tags') %></span>
+          <% postTags.forEach((tag) => { %>
+            <a class="tag tag--<%= tagClass(tag.name) %>" href="<%- midnight_i18n_url(tag.path) %>"><%= tag.name %></a>
+          <% }) %>
+        </footer>
+      <% } %>
+
+      <% if (postCategories.length) { %>
+        <footer class="article-taxonomy">
+          <span><%= __('categories') %></span>
+          <% postCategories.forEach((category) => { %>
+            <a class="tag tag--<%= tagClass(category.name) %>" href="<%- category.path ? midnight_i18n_url(category.path) : categoryUrl(category.name) %>"><%= category.name %></a>
+          <% }) %>
+        </footer>
+      <% } %>
+
+      <section class="post-share" aria-label="<%= configText('labels.share', 'Share') %>">
+        <span><%= configText('labels.share', 'Share') %></span>
+        <div>
+          <% shareTargets.forEach((target) => { %>
+            <a href="<%- target.url %>" aria-label="<%= target.label %>" title="<%= target.label %>"><%= target.text %></a>
+          <% }) %>
+        </div>
+      </section>
+
+      <% if (navPosts.length) { %>
+        <nav class="post-navigation" aria-label="<%= configText('labels.post_navigation', 'Post navigation') %>">
+          <% navPosts.forEach((item) => { %>
+            <a class="post-navigation__item post-navigation__item--<%= item.direction %>" href="<%- postUrl(item.post) %>">
+              <span><%= item.label %></span>
+              <strong><%= item.post.title %></strong>
+              <small><%= date(item.post.date, 'YYYY-MM-DD') %></small>
+            </a>
+          <% }) %>
+        </nav>
+      <% } %>
+    </main>
+
+    <aside class="post-sidebar">
+      <p class="post-sidebar__label"><%= configText('labels.sidebar', 'Sidebar') %></p>
+
+      <section class="sidebar-panel post-toc">
+        <h2><%= configText('labels.toc', 'Contents') %></h2>
+        <p><%= configText('labels.toc_description', '') %></p>
+        <% if (tocItems.length) { %>
+          <% tocItems.forEach((item) => { %>
+            <a class="toc-link toc-link--h<%= item.level %>" href="#<%- item.id %>"><%= item.text %></a>
+          <% }) %>
+        <% } else { %>
+          <span class="toc-empty"><%= configText('labels.toc_empty', 'No headings yet') %></span>
+        <% } %>
+      </section>
+
+      <section class="sponsor sponsor--side" aria-label="<%= configText('labels.sponsored', 'Sponsored') %>">
+        <span><%= configText('labels.sponsored', 'Sponsored') %></span>
+        <strong><%= configText('home.sponsors.side.title', 'Sidebar ad slot') %></strong>
+        <small>292x190</small>
+      </section>
+
+      <section class="sidebar-panel author-panel">
+        <h2><%= configText('labels.author', 'Author') %></h2>
+        <p><%= configText('labels.author_description', '') %></p>
+        <div>
+          <span class="avatar avatar--large"><%= authorInitial %></span>
+          <strong><%= authorName %></strong>
+          <small><%= configText('labels.publisher_role', 'Publisher / Editor') %></small>
+        </div>
+        <a class="panel-button" href="<%- midnight_i18n_url('/about/') %>"><%= configText('labels.author_profile', 'View Author Profile') %></a>
+      </section>
+
+      <% if (relatedTopics.length) { %>
+        <section class="sidebar-panel">
+          <h2><%= configText('labels.related_topics', 'Related Topics') %></h2>
+          <p><%= configText('labels.related_topics_description', '') %></p>
+          <% relatedTopics.forEach((item) => { %>
+            <a class="series-row" href="<%- tagUrl(item.name) %>"><span><%= item.name %></span><b><%= item.count %></b></a>
+          <% }) %>
+        </section>
+      <% } %>
+
+      <% if (newsletterFormAction) { %>
+        <section class="sidebar-panel newsletter-panel">
+          <h2><%= __('newsletter') %></h2>
+          <p><%= configText('labels.newsletter_description', '') %></p>
+          <%- partial('_partial/newsletter-form', { variant: 'post' }) %>
+        </section>
+      <% } %>
+    </aside>
+  </div>
+</article>
+
+<% if (relatedPosts.length) { %>
+  <section class="related-posts">
+    <div class="section-heading">
+      <h2><%= configText('labels.continue_reading', 'Continue Reading') %></h2>
+      <p><%= configText('labels.continue_reading_description', '') %></p>
+    </div>
+    <div class="related-grid">
+      <% relatedPosts.forEach((post, index) => { const label = ['AI Agent', 'Business', 'Hexo Theme'][index] || 'Research'; %>
+        <article class="related-card">
+          <a class="story-cover" href="<%- postUrl(post) %>" aria-label="<%= post.title %>">
+            <span class="tag tag--<%= tagClass(label) %>"><%= label %></span>
+            <i></i><i></i><i></i><i></i><i></i>
+          </a>
+          <h3><a href="<%- postUrl(post) %>"><%= post.title %></a></h3>
+          <p><%= date(post.date, 'YYYY-MM-DD') %> · <%= configText('labels.editor_recommend', 'Editor Pick') %></p>
+        </article>
+      <% }) %>
+    </div>
+  </section>
+<% } %>
+
+<%- partial('_partial/model-session') %>
+<%- partial('_partial/comments') %>

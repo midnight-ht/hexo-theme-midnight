@@ -1,0 +1,87 @@
+<%
+const collections = midnight_config('inner_pages.collections', []) || [];
+const tagList = Array.isArray(page.tag_collection) ? page.tag_collection : [];
+
+function slug(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+function tagClass(label) {
+  return slug(label) || 'topic';
+}
+
+function collectionFor(tag) {
+  return tag && tag.collection ? tag.collection : collections.find((item) => slug(item.name) === slug(tag.name) || slug(item.name) === slug(tag.slug)) || {};
+}
+
+const cards = tagList.filter((tag) => tag.count > 0).map((tag) => {
+  const collection = collectionFor(tag);
+  return {
+    name: tag.name,
+    slug: tag.slug,
+    count: tag.count || 0,
+    label: midnight_value(collection.label, tag.name),
+    kicker: midnight_value(collection.kicker, ''),
+    description: midnight_value(collection.description, ''),
+    accent: collection.accent || ''
+  };
+}).sort((a, b) => b.count - a.count);
+%>
+
+<section class="inner-page tag-index-page">
+  <header class="inner-hero">
+    <div class="inner-hero__body">
+      <div class="inner-hero__kicker"><%= midnight_text('labels.collection_kicker', 'Channel') %></div>
+      <h1><%= midnight_text('labels.topics', 'Topics') %></h1>
+      <p><%= midnight_text('labels.channel_entries_description', '') %></p>
+      <div class="inner-hero__meta">
+        <span class="tag tag--series"><%= cards.length %> <%= midnight_text('labels.topics', 'Topics') %></span>
+        <span class="inner-hero__path">midnight / tags</span>
+      </div>
+    </div>
+    <div class="inner-hero__cover" aria-hidden="true">
+      <i></i><i></i><i></i><i></i>
+    </div>
+  </header>
+
+  <section class="collection-layout inner-layout-v2">
+    <main class="collection-list">
+      <section class="channel-section">
+        <div class="section-heading">
+          <h2><%= midnight_text('labels.channel_entries', 'Topic Entries') %></h2>
+          <p><%= midnight_text('labels.channel_entries_description', '') %></p>
+        </div>
+        <% if (cards.length) { %>
+          <div class="tag-index-grid">
+            <% cards.forEach((card) => { %>
+              <a class="tag-index-card" href="<%- midnight_tag_url(card.slug) %>" style="<%- card.accent ? ('--inner-accent: ' + card.accent) : '' %>">
+                <div class="tag-index-card__cover" aria-hidden="true">
+                  <i></i><i></i><i></i><i></i>
+                </div>
+                <div class="tag-index-card__body">
+                  <header>
+                    <span class="tag tag--<%= tagClass(card.name) %>"><%= card.label %></span>
+                    <% if (card.count) { %><b><%= card.count %></b><% } %>
+                  </header>
+                  <h3><%= card.label %></h3>
+                  <% if (card.description) { %>
+                    <p><%= card.description %></p>
+                  <% } %>
+                </div>
+              </a>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <section class="archive-empty">
+            <h2><%= midnight_text('labels.collection_empty', 'No stories yet') %></h2>
+            <p><%= midnight_text('labels.collection_empty_description', '') %></p>
+          </section>
+        <% } %>
+      </section>
+    </main>
+
+    <aside class="collection-sidebar inner-sidebar">
+      <%- partial('_partial/inner-sidebar', { variant: 'tags' }) %>
+    </aside>
+  </section>
+</section>

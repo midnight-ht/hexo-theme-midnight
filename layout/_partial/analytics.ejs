@@ -1,0 +1,52 @@
+<%
+const analytics = theme.web_analytics || {};
+const analyticsEnabled = analytics.enabled === true || analytics.enable === true;
+const footerStats = (theme.footer && theme.footer.statistics) || {};
+const statsEnabled = footerStats.enabled === true || footerStats.enable === true;
+const busuanziCfg = analytics.busuanzi || {};
+const busuanziEnabled = statsEnabled && (footerStats.source || 'busuanzi') === 'busuanzi' || busuanziCfg.enabled === true || busuanziCfg.enable === true;
+%>
+
+<% if (analyticsEnabled && analytics.baidu) { %>
+  <script>
+    var _hmt = _hmt || [];
+    (function () {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?<%- analytics.baidu %>";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+<% } %>
+
+<% if (analyticsEnabled && analytics.google) { %>
+  <script async src="https://www.google-analytics.com/analytics.js"></script>
+  <script>
+    window.ga = window.ga || function () { (ga.q = ga.q || []).push(arguments); };
+    ga.l = +new Date();
+    ga('create', '<%- analytics.google %>', 'auto');
+    ga('send', 'pageview');
+  </script>
+<% } %>
+
+<% if (analyticsEnabled && analytics.gtag) { %>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=<%- analytics.gtag %>"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '<%- analytics.gtag %>');
+  </script>
+<% } %>
+
+<% if (analyticsEnabled && analytics.cnzz) { %>
+  <script async src="https://s9.cnzz.com/z_stat.php?id=<%- analytics.cnzz %>&web_id=<%- analytics.cnzz %>"></script>
+<% } %>
+
+<% if (analyticsEnabled && analytics.woyaola) { %>
+  <script async src="https://js.users.51.la/<%- analytics.woyaola %>.js"></script>
+<% } %>
+
+<% if (busuanziEnabled) { %>
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<% } %>

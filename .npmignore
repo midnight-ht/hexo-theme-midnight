@@ -1,0 +1,12 @@
+.claude/
+docs/
+example-site/
+examples/
+node_modules/
+
+.git/
+.gitignore
+*.log
+*.tgz
+.DS_Store
+Thumbs.db

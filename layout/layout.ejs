@@ -1,0 +1,27 @@
+<!doctype html>
+<html
+  lang="<%= midnight_page_lang(page) %>"
+  data-code-copy="<%= midnight_text('labels.code_copy', 'Copy') %>"
+  data-code-copied="<%= midnight_text('labels.code_copied', 'Copied') %>"
+  data-code-failed="<%= midnight_text('labels.code_failed', 'Failed') %>"
+  data-code-copy-label="<%= midnight_text('labels.code_copy_label', 'Copy code') %>"
+  data-code-copied-label="<%= midnight_text('labels.code_copied_label', 'Code copied') %>"
+>
+  <%- partial('_partial/head') %>
+  <body>
+    <a class="skip-link" href="#content"><%= midnight_text('labels.skip_to_content', 'Skip to content') %></a>
+    <div class="site-shell">
+      <%- partial('_partial/header') %>
+      <main class="site-main" id="content">
+        <%- body %>
+      </main>
+      <%- partial('_partial/footer') %>
+    </div>
+    <% const layoutAssetVersion = theme.asset_version || theme.version || '20260519-header-controls'; %>
+    <script src="<%- url_for('/js/main.js') %>?v=<%- layoutAssetVersion %>" defer></script>
+    <% if (theme.model_session && theme.model_session.enabled && String(theme.model_session.endpoint || '').trim()) { %>
+      <script src="<%- url_for('/js/model-session.js') %>?v=<%- layoutAssetVersion %>" defer></script>
+    <% } %>
+    <%- partial('_partial/analytics') %>
+  </body>
+</html>

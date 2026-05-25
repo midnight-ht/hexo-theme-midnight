@@ -1,0 +1,128 @@
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <%
+  const seoCfg = (theme && theme.seo) || {};
+  const titleSeparator = theme.tab_title_separator || ' | ';
+  const headRouteNoLang = String(page.path || '').split('/').filter(Boolean).filter((part) => !((theme.i18n && theme.i18n.languages) || []).includes(part)).join('/');
+  const headInnerPageKey = /(^|\/)about\/?$/i.test(headRouteNoLang)
+    ? 'about'
+    : (/(^|\/)advertise\/?$/i.test(headRouteNoLang)
+      ? 'advertise'
+      : (/(^|\/)newsletter\/?$/i.test(headRouteNoLang)
+        ? 'newsletter'
+        : (/(^|\/)privacy\/?$/i.test(headRouteNoLang) ? 'privacy' : '')));
+  const headInnerPageConfig = headInnerPageKey ? midnight_config('inner_pages.' + headInnerPageKey, {}) : {};
+  const headAboutHasContent = headInnerPageKey === 'about' && Boolean(page.content && strip_html(page.content).replace(/\s+/g, '').trim());
+  const headRawTitle = headInnerPageKey && !headAboutHasContent ? midnight_value(headInnerPageConfig.title, page.title || config.title) : page.title;
+  const pageDescription = strip_html(
+    (headInnerPageKey && !headAboutHasContent ? midnight_value(headInnerPageConfig.description, '') : '') ||
+    midnight_excerpt(page, 150) ||
+    config.description ||
+    theme.description ||
+    ''
+  ).replace(/\s+/g, ' ').trim().substring(0, 160);
+  const pageTitle = headRawTitle ? `${headRawTitle}${titleSeparator}${config.title}` : config.title;
+  const pageUrl = midnight_canonical_url(page);
+  const ogImage = page.og_image || page.cover || seoCfg.open_graph_image || '';
+  const favicon = theme.favicon || '';
+  const appleTouchIcon = theme.apple_touch_icon || '';
+  %>
+  <title><%= pageTitle %></title>
+  <% if (theme.force_https) { %>
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  <% } %>
+  <% if (favicon) { %>
+    <link rel="icon" href="<%- url_for(favicon) %>">
+  <% } %>
+  <% if (appleTouchIcon) { %>
+    <link rel="apple-touch-icon" href="<%- url_for(appleTouchIcon) %>">
+  <% } %>
+  <% if (pageDescription) { %>
+    <meta name="description" content="<%= pageDescription %>">
+  <% } %>
+  <% if (seoCfg.keywords || page.keywords) { %>
+    <meta name="keywords" content="<%= Array.isArray(page.keywords) ? page.keywords.join(',') : (page.keywords || seoCfg.keywords) %>">
+  <% } %>
+  <% if (seoCfg.robots !== false) { %>
+    <meta name="robots" content="<%= seoCfg.robots || 'index,follow' %>">
+  <% } %>
+  <% if (seoCfg.baidu_site_verification) { %>
+    <meta name="baidu-site-verification" content="<%= seoCfg.baidu_site_verification %>">
+  <% } %>
+  <% if (seoCfg.google_site_verification) { %>
+    <meta name="google-site-verification" content="<%= seoCfg.google_site_verification %>">
+  <% } %>
+  <% if (seoCfg.bing_site_verification) { %>
+    <meta name="msvalidate.01" content="<%= seoCfg.bing_site_verification %>">
+  <% } %>
+  <link rel="canonical" href="<%- midnight_canonical_url(page) %>">
+  <% const languageLinks = midnight_language_links(page); %>
+  <% languageLinks.forEach((item) => { %>
+    <link rel="alternate" hreflang="<%= item.lang %>" href="<%- item.absolute_url || item.url %>">
+  <% }) %>
+  <%
+  const sitemapSiteCfg = (config && config.sitemap) || {};
+  const sitemapThemeCfg = (theme && theme.sitemap) || {};
+  const sitemapPath = sitemapSiteCfg.path || sitemapThemeCfg.path || 'sitemap.xml';
+  const sitemapEnabled = sitemapThemeCfg.enabled !== false;
+  const feedSiteCfg = (config && config.feed) || {};
+  const feedThemeCfg = (theme && theme.feed) || {};
+  const feedPath = feedSiteCfg.path || feedThemeCfg.path || 'atom.xml';
+  const feedTitle = feedThemeCfg.title || 'RSS';
+  const feedEnabled = feedThemeCfg.enabled !== false;
+  %>
+  <% if (sitemapEnabled) { %>
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="<%- url_for('/' + sitemapPath.replace(/^\/+/, '')) %>">
+  <% } %>
+  <% if (feedEnabled) { %>
+    <link rel="alternate" type="application/atom+xml" title="<%= feedTitle %>" href="<%- url_for('/' + feedPath.replace(/^\/+/, '')) %>">
+  <% } %>
+  <% if (seoCfg.open_graph !== false) { %>
+    <meta property="og:title" content="<%= pageTitle %>">
+    <% if (pageDescription) { %><meta property="og:description" content="<%= pageDescription %>"><% } %>
+    <meta property="og:type" content="<%= page.layout === 'post' ? 'article' : 'website' %>">
+    <meta property="og:url" content="<%- pageUrl %>">
+    <meta property="og:site_name" content="<%= config.title %>">
+    <meta property="og:locale" content="<%= midnight_page_lang(page).replace('-', '_') %>">
+    <% if (ogImage) { %><meta property="og:image" content="<%- full_url_for(ogImage) %>"><% } %>
+    <meta name="twitter:card" content="<%= seoCfg.twitter_card || 'summary_large_image' %>">
+  <% } %>
+  <meta name="theme-color" content="#080b10">
+  <% const defaultScheme = theme.appearance && theme.appearance.default_scheme === 'light' ? 'light' : 'dark'; %>
+  <script>
+    (function () {
+      var key = 'midnight-theme';
+      var defaultScheme = '<%- defaultScheme %>';
+      function valid(value) {
+        return value === 'light' || value === 'dark' ? value : '';
+      }
+      function safeGet(storage) {
+        try { return valid(storage && storage.getItem(key)); } catch (e) { return ''; }
+      }
+      function cookieTheme() {
+        var match = document.cookie.match(/(?:^|;\s*)midnight-theme=(light|dark)(?:;|$)/);
+        return match ? match[1] : '';
+      }
+      function windowNameTheme() {
+        try {
+          var match = String(window.name || '').match(/(?:^|;)midnight-theme=(light|dark)(?:;|$)/);
+          return match ? match[1] : '';
+        } catch (e) {
+          return '';
+        }
+      }
+      var theme = safeGet(window.localStorage) || safeGet(window.sessionStorage) || cookieTheme() || windowNameTheme();
+      if (!theme) theme = valid(defaultScheme) || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.dataset.defaultScheme = defaultScheme;
+      document.documentElement.dataset.theme = theme;
+      document.documentElement.dataset.background = '<%- (theme.appearance && theme.appearance.background) || 'default' %>';
+      document.documentElement.classList.add(theme === 'dark' ? 'theme-dark' : 'theme-light');
+    })();
+  </script>
+  <% const assetVersion = theme.asset_version || theme.version || '20260519-header-controls'; %>
+  <link rel="stylesheet" href="<%- url_for('/css/main.css') %>?v=<%- assetVersion %>">
+  <% if (theme.appearance && theme.appearance.accent) { %>
+    <style>:root{--accent:<%- theme.appearance.accent %>;}</style>
+  <% } %>
+</head>

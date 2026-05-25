@@ -1,0 +1,37 @@
+<%
+function configText(path, fallback) {
+  return midnight_text(path, fallback);
+}
+
+const latestPosts = site.posts && site.posts.toArray
+  ? site.posts.toArray().sort((a, b) => b.date.valueOf() - a.date.valueOf()).slice(0, 4)
+  : [];
+%>
+
+<section class="not-found">
+  <div class="not-found__hero">
+    <span><%= configText('labels.not_found_kicker', '404') %></span>
+    <h1><%= page.title || configText('labels.not_found_title', 'Page Not Found') %></h1>
+    <p><%= configText('labels.not_found_description', 'The page may have moved, been translated under another route, or never existed.') %></p>
+    <form class="not-found__search" action="<%- midnight_i18n_url('/search/') %>" method="get">
+      <input type="search" name="q" placeholder="<%= configText('labels.search_placeholder', 'Search') %>" aria-label="<%= configText('labels.search_placeholder', 'Search') %>">
+      <button type="submit"><%= configText('labels.search', 'Search') %></button>
+    </form>
+    <div class="not-found__actions">
+      <a href="<%- midnight_i18n_url('/') %>"><%= __('home') %></a>
+      <a href="<%- midnight_i18n_url('/archives/') %>"><%= __('archives') %></a>
+    </div>
+  </div>
+
+  <% if (latestPosts.length) { %>
+    <div class="not-found__latest">
+      <h2><%= __('latest_posts') %></h2>
+      <% latestPosts.forEach((post) => { %>
+        <a href="<%- midnight_i18n_url(post.path) %>">
+          <strong><%= post.title %></strong>
+          <small><%= date(post.date, 'YYYY-MM-DD') %></small>
+        </a>
+      <% }) %>
+    </div>
+  <% } %>
+</section>

@@ -1,0 +1,126 @@
+<%
+const sidebarVariant = typeof variant !== 'undefined' ? variant : 'channel';
+const includeSponsored = typeof showSponsored === 'undefined' ? true : !!showSponsored;
+const includePopular = typeof showPopular === 'undefined' ? true : !!showPopular;
+const includeSeries = typeof showSeries === 'undefined' ? true : !!showSeries;
+const includeNewsletter = typeof showNewsletter === 'undefined' ? true : !!showNewsletter;
+const newsletterFormAction = String(midnight_config('inner_pages.newsletter.form.action', '') || '').trim();
+const configuredSeriesEntries = midnight_config('inner_pages.series_entries', []) || [];
+const currentLang = midnight_page_lang(page);
+
+function collectionToArray(value) {
+  if (value && value.toArray) return value.toArray();
+  if (value && Array.isArray(value.data)) return value.data;
+  return Array.isArray(value) ? value : [];
+}
+
+const hasExplicitSidebarPosts = typeof sidebarPosts !== 'undefined';
+const explicitScopedPosts = hasExplicitSidebarPosts ? collectionToArray(sidebarPosts) : [];
+const hasPageScopedPosts = page && Object.prototype.hasOwnProperty.call(page, 'all_posts');
+const scopedPosts = hasExplicitSidebarPosts ? explicitScopedPosts : collectionToArray(page.all_posts);
+const sitePosts = site.posts && site.posts.toArray ? site.posts.toArray() : [];
+const currentPagePosts = collectionToArray(page.posts);
+const sourcePosts = hasExplicitSidebarPosts || hasPageScopedPosts ? scopedPosts : (currentPagePosts.length ? currentPagePosts : sitePosts);
+const posts = sourcePosts.filter((post) => midnight_page_lang(post) === currentLang).sort((a, b) => b.date - a.date);
+
+function postDateValue(post) {
+  const value = post && post.date && typeof post.date.valueOf === 'function' ? post.date.valueOf() : new Date(post.date || 0).valueOf();
+  return Number.isFinite(value) ? value : 0;
+}
+
+function clickCount(post) {
+  const values = [
+    post.clicks,
+    post.click,
+    post.click_count,
+    post.clickCount,
+    post.views,
+    post.view,
+    post.views_count,
+    post.view_count,
+    post.viewCount,
+    post.pageviews,
+    post.page_views,
+    post.pageViews,
+    post.pv,
+    post.visits,
+    post.reads,
+    post.read_count,
+    post.readCount,
+    post.popularity,
+    post.stats && post.stats.clicks,
+    post.stats && post.stats.views
+  ];
+  const value = values.map(Number).find((item) => Number.isFinite(item));
+  return Number.isFinite(value) ? value : 0;
+}
+
+const realPopularReads = posts
+  .sort((a, b) => clickCount(b) - clickCount(a) || postDateValue(b) - postDateValue(a))
+  .slice(0, 4);
+const popularReads = realPopularReads;
+const seriesEntries = configuredSeriesEntries;
+
+function seriesHref(entry) {
+  const path = entry && entry.path;
+  if (entry && entry.kind === 'categories') return midnight_i18n_url('/categories/' + encodeURIComponent(entry.slug || entry.name) + '/');
+  if (entry && entry.kind === 'tags') return midnight_tag_url(entry.slug || entry.name);
+  if (!path) return '#';
+  const parts = String(path).split('/').filter(Boolean);
+  const tagIndex = parts.findIndex((part) => part.toLowerCase() === 'tags');
+  if (tagIndex >= 0) return midnight_tag_url(parts[tagIndex + 1] || entry.name);
+  return midnight_i18n_url(path);
+}
+%>
+
+<% if (includeSponsored) { %>
+  <section class="sidebar-panel sidebar-panel--ad" aria-label="<%= midnight_text('labels.sponsored', 'Sponsored') %>">
+    <span class="sidebar-panel__badge"><%= midnight_text('labels.sponsored', 'Sponsored') %></span>
+    <strong><%= midnight_text('labels.sidebar_ad_label', 'Channel Sponsored Slot') %></strong>
+    <small><%= midnight_text('labels.sidebar_ad_tip', 'Ads / Sponsored / Promotion') %></small>
+  </section>
+<% } %>
+
+<% if (includePopular && popularReads.length) { %>
+  <section class="sidebar-panel popular-panel">
+    <h2><%= midnight_text('labels.popular_reads', 'Popular Reads') %></h2>
+    <p><%= midnight_text('labels.popular_reads_description', '') %></p>
+    <ol class="popular-list">
+      <% popularReads.slice(0, 4).forEach((item, index) => { %>
+        <li class="popular-row">
+          <span class="popular-row__no"><%= String(index + 1).padStart(2, '0') %></span>
+          <div>
+            <% if (item.path) { %>
+              <strong><a href="<%- midnight_i18n_url(item.path) %>"><%= item.title %></a></strong>
+              <small><%= midnight_text('labels.read_count', 'Reads') %> <%= clickCount(item) || '-' %></small>
+            <% } else { %>
+              <strong><%= midnight_value(item.title, '') %></strong>
+              <small><%= midnight_value(item.meta, '') %></small>
+            <% } %>
+          </div>
+        </li>
+      <% }) %>
+    </ol>
+  </section>
+<% } %>
+
+<% if (includeSeries && seriesEntries.length) { %>
+  <section class="sidebar-panel series-panel">
+    <h2><%= midnight_text('labels.channel_entries', 'Topic Entries') %></h2>
+    <p><%= midnight_text('labels.channel_entries_description', '') %></p>
+    <% seriesEntries.slice(0, 4).forEach((entry) => { %>
+      <a class="series-row" href="<%- seriesHref(entry) %>">
+        <span><%= typeof entry.label === 'object' ? midnight_value(entry.label, entry.name || '') : (entry.label || entry.name || '') %></span>
+        <% if (entry.count) { %><b><%= entry.count %></b><% } %>
+      </a>
+    <% }) %>
+  </section>
+<% } %>
+
+<% if (includeNewsletter && newsletterFormAction) { %>
+  <section class="sidebar-panel newsletter-panel">
+    <h2><%= __('newsletter') %></h2>
+    <p><%= midnight_text('labels.newsletter_description', '') %></p>
+    <%- partial('_partial/newsletter-form', { variant: 'inner' }) %>
+  </section>
+<% } %>

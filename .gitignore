@@ -1,0 +1,11 @@
+.claude/
+docs/
+node_modules/
+example-site/node_modules/
+
+*.log
+*.tgz
+.DS_Store
+Thumbs.db
+
+___*

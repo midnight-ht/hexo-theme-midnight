@@ -1,0 +1,116 @@
+<%
+const advertise = midnight_config('inner_pages.advertise', {});
+const title = midnight_value(advertise.title, __('advertise'));
+const description = midnight_value(advertise.description, '');
+const stats = advertise.stats || [];
+const placements = advertise.placements || [];
+const process = advertise.process || [];
+const guidelines = advertise.guidelines || [];
+const contact = advertise.contact || {};
+const contactEmail = contact.email || advertise.email || midnight_config('contact.email', '');
+const contactUrl = contact.url || advertise.url || midnight_config('contact.url', '');
+const contactLabel = midnight_value(contact.label, contactEmail || contactUrl || midnight_text('labels.advertise_contact_cta', 'Contact sales'));
+function statValue(value) {
+  return value && typeof value === 'object' ? midnight_value(value, '') : String(value || '');
+}
+%>
+
+<article class="inner-page commercial-page advertise-page">
+  <header class="inner-hero commercial-hero commercial-hero--advertise">
+    <div class="inner-hero__body">
+      <div class="inner-hero__kicker"><%= midnight_text('labels.advertise_kicker', 'Advertise') %></div>
+      <h1><%= title %></h1>
+      <% if (description) { %>
+        <p><%= description %></p>
+      <% } %>
+      <div class="inner-hero__meta">
+        <span class="tag tag--business"><%= __('advertise') %></span>
+        <span class="inner-hero__path">midnight / advertise</span>
+      </div>
+    </div>
+    <div class="commercial-hero__media" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </div>
+  </header>
+
+  <section class="collection-layout inner-layout-v2 commercial-layout">
+    <main class="collection-list commercial-main">
+      <% if (stats.length) { %>
+        <section class="commercial-stats" aria-label="<%= midnight_text('labels.advertise_audience', 'Audience') %>">
+          <% stats.slice(0, 4).forEach((item) => { %>
+            <article>
+              <strong><%= statValue(item.value) %></strong>
+              <span><%= midnight_value(item.label, '') %></span>
+            </article>
+          <% }) %>
+        </section>
+      <% } %>
+
+      <% if (placements.length) { %>
+        <section class="channel-section commercial-section">
+          <div class="section-heading">
+            <h2><%= midnight_text('labels.advertise_placements', 'Placements') %></h2>
+            <p><%= midnight_text('labels.advertise_placements_description', '') %></p>
+          </div>
+          <div class="commercial-card-grid">
+            <% placements.forEach((item) => { %>
+              <article class="commercial-card">
+                <span><%= midnight_value(item.badge, midnight_text('labels.sponsored', 'Sponsored')) %></span>
+                <h3><%= midnight_value(item.title, '') %></h3>
+                <p><%= midnight_value(item.description, '') %></p>
+                <% if (item.meta) { %><small><%= midnight_value(item.meta, '') %></small><% } %>
+              </article>
+            <% }) %>
+          </div>
+        </section>
+      <% } %>
+
+      <% if (advertise.body) { %>
+        <section class="channel-section commercial-section">
+          <div class="article-content">
+            <p><%= midnight_value(advertise.body, '') %></p>
+          </div>
+        </section>
+      <% } %>
+    </main>
+
+    <aside class="collection-sidebar inner-sidebar commercial-sidebar">
+      <section class="sidebar-panel commercial-contact">
+        <h2><%= midnight_text('labels.advertise_contact', 'Contact') %></h2>
+        <p><%= midnight_value(contact.description, '') %></p>
+        <% if (contactEmail) { %>
+          <p class="commercial-contact__email"><%= contactEmail %></p>
+        <% } %>
+        <% if (contactEmail) { %>
+          <a class="panel-button" href="mailto:<%- contactEmail %>"><%= contactLabel %></a>
+        <% } else if (contactUrl) { %>
+          <a class="panel-button" href="<%- contactUrl %>"><%= contactLabel %></a>
+        <% } %>
+      </section>
+
+      <% if (process.length) { %>
+        <section class="sidebar-panel commercial-steps">
+          <h2><%= midnight_text('labels.advertise_process', 'Process') %></h2>
+          <ol>
+            <% process.forEach((item) => { %>
+              <li><%= midnight_value(item, '') %></li>
+            <% }) %>
+          </ol>
+        </section>
+      <% } %>
+
+      <% if (guidelines.length) { %>
+        <section class="sidebar-panel commercial-steps">
+          <h2><%= midnight_text('labels.advertise_guidelines', 'Guidelines') %></h2>
+          <ul>
+            <% guidelines.forEach((item) => { %>
+              <li><%= midnight_value(item, '') %></li>
+            <% }) %>
+          </ul>
+        </section>
+      <% } %>
+    </aside>
+  </section>
+</article>
+
+<%- partial('_partial/comments') %>

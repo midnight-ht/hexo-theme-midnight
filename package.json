@@ -1,0 +1,48 @@
+{
+  "name": "hexo-theme-midnight",
+  "version": "0.1.0",
+  "description": "A modern technology Hexo theme with AI session, i18n, sitemap, and comments support.",
+  "keywords": [
+    "hexo",
+    "hexo-theme",
+    "i18n",
+    "ai",
+    "comments",
+    "sitemap"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/midnight-ht/hexo-theme-midnight.git"
+  },
+  "bugs": {
+    "url": "https://github.com/midnight-ht/hexo-theme-midnight/issues"
+  },
+  "homepage": "https://github.com/midnight-ht/hexo-theme-midnight#readme",
+  "files": [
+    "_config.yml",
+    ".hexoignore",
+    "languages/",
+    "layout/",
+    "scripts/",
+    "source/",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "lint:structure": "node scripts/check-structure.js",
+    "lint:config-content": "node scripts/check-config-driven-content.js",
+    "lint:example": "node scripts/check-example-site.js",
+    "lint:example:output": "node scripts/check-example-output.js",
+    "lint:a11y": "node scripts/check-a11y-static.js",
+    "lint:comments": "node scripts/check-comments-render.js",
+    "lint:analytics": "node scripts/check-analytics-render.js",
+    "lint:model-session": "node scripts/check-model-session-render.js",
+    "lint:newsletter": "node scripts/check-newsletter-render.js",
+    "lint:excerpt": "node scripts/check-excerpt-helper.js"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}

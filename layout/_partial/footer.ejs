@@ -1,0 +1,66 @@
+<footer class="site-footer">
+  <%
+  const footerCollections = midnight_config('inner_pages.collections', []);
+  const footerChannels = footerCollections.length
+    ? footerCollections.slice(0, 3)
+    : midnight_config('home.channels', ['AI Agent', 'Engineering', 'Business']).slice(0, 3).map((name) => ({ name, path: '/tags/' + encodeURIComponent(String(name).replace(/\s+/g, '-')) + '/' }));
+  function footerTagUrl(path) {
+    const parts = String(path || '').split('/').filter(Boolean);
+    const tagIndex = parts.findIndex((part) => part.toLowerCase() === 'tags');
+    return tagIndex >= 0 ? midnight_tag_url(parts[tagIndex + 1] || '') : midnight_i18n_url(path || '/');
+  }
+  const footerFeedCfg = (theme && theme.feed) || {};
+  const footerSiteFeedCfg = (config && config.feed) || {};
+  const footerFeedPath = footerSiteFeedCfg.path || footerFeedCfg.path || 'atom.xml';
+  const footerFeedEnabled = footerFeedCfg.enabled !== false;
+  const footerSitemapCfg = (theme && theme.sitemap) || {};
+  const footerSiteSitemapCfg = (config && config.sitemap) || {};
+  const footerSitemapPath = footerSiteSitemapCfg.path || footerSitemapCfg.path || 'sitemap.xml';
+  const footerStatsCfg = (theme.footer && theme.footer.statistics) || {};
+  const footerStatsEnabled = footerStatsCfg.enabled === true || footerStatsCfg.enable === true;
+  const footerPvFormat = midnight_value(footerStatsCfg.pv_format, '{} page views');
+  const footerUvFormat = midnight_value(footerStatsCfg.uv_format, '{} visitors');
+  const footerNewsletterAction = String(midnight_config('inner_pages.newsletter.form.action', '') || '').trim();
+  %>
+  <div class="site-footer__brand">
+    <strong><%= theme.appearance.logo_text || config.title || 'midnight' %></strong>
+    <p><%= config.description || theme.description || 'A modern technology Hexo theme with AI session, i18n, sitemap, and comments support.' %></p>
+    <span>&copy; <%= date(new Date(), 'YYYY') %> <%= config.author || config.title || 'Midnight' %></span>
+    <% if (footerStatsEnabled && (footerStatsCfg.source || 'busuanzi') === 'busuanzi') { %>
+      <span class="site-footer__stats">
+        <span><%= footerPvFormat.split('{}')[0] %><span id="busuanzi_value_site_pv"></span><%= footerPvFormat.split('{}')[1] || '' %></span>
+        <span><%= footerUvFormat.split('{}')[0] %><span id="busuanzi_value_site_uv"></span><%= footerUvFormat.split('{}')[1] || '' %></span>
+      </span>
+    <% } %>
+  </div>
+  <nav aria-label="<%= midnight_text('labels.footer_sections_navigation', 'Footer sections') %>">
+    <div>
+      <strong><%= midnight_text('labels.footer_sections', 'Sections') %></strong>
+      <a href="<%- midnight_i18n_url('/') %>"><%= __('home') %></a>
+      <a href="<%- midnight_i18n_url('/archives/') %>"><%= __('archives') %></a>
+      <a href="<%- midnight_i18n_url('/about/') %>"><%= __('about') %></a>
+    </div>
+    <div>
+      <strong><%= midnight_text('labels.footer_channels', 'Channels') %></strong>
+      <% footerChannels.forEach((channel) => { %>
+        <a href="<%- footerTagUrl(channel.path || '/') %>"><%= midnight_value(channel.label, channel.name) %></a>
+      <% }) %>
+    </div>
+    <div>
+      <strong><%= midnight_text('labels.footer_resources', 'Resources') %></strong>
+      <% if (footerNewsletterAction) { %>
+        <a href="<%- midnight_i18n_url('/newsletter/') %>"><%= __('newsletter') %></a>
+      <% } %>
+      <% if (footerFeedEnabled) { %>
+        <a href="<%- url_for('/' + footerFeedPath.replace(/^\/+/, '')) %>"><%= __('rss') %></a>
+      <% } %>
+      <a href="<%- url_for('/' + footerSitemapPath.replace(/^\/+/, '')) %>"><%= __('sitemap') %></a>
+    </div>
+    <div>
+      <strong><%= midnight_text('labels.footer_meta', 'Meta') %></strong>
+      <a href="<%- midnight_i18n_url('/advertise/') %>"><%= __('advertise') %></a>
+      <a href="<%- midnight_i18n_url('/privacy/') %>"><%= __('privacy') %></a>
+      <a href="https://hexo.io/"><%= midnight_text('labels.powered_by', 'Powered by Hexo') %></a>
+    </div>
+  </nav>
+</footer>

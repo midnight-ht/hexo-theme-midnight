@@ -1,0 +1,177 @@
+<header class="site-header">
+  <%
+  const headerLanguageLinks = midnight_language_links(page);
+  const headerNewsletterAction = String(midnight_config('inner_pages.newsletter.form.action', '') || '').trim();
+  const navConfig = theme.nav || {};
+  const legacyNav = Array.isArray(navConfig) ? navConfig : [];
+  const homeNav = legacyNav[0] || navConfig.home || { name: 'home', path: '/' };
+  const customNavItems = Array.isArray(navConfig.items) ? navConfig.items : [];
+  const archiveNav = navConfig.archives || legacyNav.find((item) => item.name === 'archives') || { name: 'archives', path: '/archives/' };
+  const aboutNav = navConfig.about || legacyNav.find((item) => item.name === 'about') || { name: 'about', path: '/about/' };
+  const primaryNav = [homeNav].concat(customNavItems, [archiveNav, aboutNav]).filter(Boolean);
+  const currentPath = '/' + String(page.path || '').replace(/^\/+/, '').replace(/index\.html?$/i, '');
+  const supportedLanguages = (theme.i18n && theme.i18n.languages) || [];
+  function stripLangPrefix(path) {
+    const route = '/' + String(path || '/').replace(/^\/+/, '').replace(/index\.html?$/i, '');
+    const parts = route.split('/').filter(Boolean);
+    return parts.length && supportedLanguages.includes(parts[0]) ? '/' + parts.slice(1).join('/') + (route.endsWith('/') && parts.length > 1 ? '/' : '') : route;
+  }
+  function navLabel(item) {
+    return midnight_value(item.label || item.name, item.name || '');
+  }
+  function navStyle(item) {
+    return String(item.style || 'underline').toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
+  }
+  function isNavActive(item) {
+    const path = stripLangPrefix(item.path || '/');
+    const current = stripLangPrefix(currentPath);
+    const matches = Array.isArray(item.active_match) ? item.active_match : [path];
+    if (path === '/' && current === '/') return true;
+    return matches.some((match) => {
+      const clean = stripLangPrefix(match);
+      if (item.active_exact || clean === '/') return current === clean;
+      return current === clean || current.startsWith(clean);
+    });
+  }
+  function navUrl(item) {
+    const parts = String(item.path || '').split('/').filter(Boolean);
+    const tagIndex = parts.findIndex((part) => part.toLowerCase() === 'tags');
+    if (tagIndex >= 0) return midnight_tag_url(parts[tagIndex + 1] || '');
+    return midnight_i18n_url(item.path || '/');
+  }
+  function themeToggleMarkup(extraClass) {
+  %>
+    <button
+      class="theme-toggle <%= extraClass || '' %>"
+      type="button"
+      role="switch"
+      aria-checked="false"
+      data-theme-toggle
+      data-label-switch-light="<%= midnight_text('labels.switch_to_light', 'Switch to light theme') %>"
+      data-label-switch-dark="<%= midnight_text('labels.switch_to_dark', 'Switch to dark theme') %>"
+      aria-label="<%= midnight_text('labels.switch_to_dark', 'Switch to dark theme') %>"
+    >
+      <span class="theme-toggle__icon theme-toggle__icon--sun" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        </svg>
+      </span>
+      <span class="theme-toggle__icon theme-toggle__icon--moon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </span>
+      <span class="theme-toggle__thumb" aria-hidden="true"></span>
+    </button>
+  <%
+  }
+  function languageSelectMarkup(extraClass) {
+    if (!headerLanguageLinks.length) return;
+  %>
+    <label class="language-select <%= extraClass || '' %>" aria-label="<%= __('translations') %>">
+      <select data-language-select>
+        <% headerLanguageLinks.forEach((item) => { %>
+          <option value="<%- item.url %>"<%= item.active ? ' selected' : '' %>><%= item.lang %></option>
+        <% }) %>
+      </select>
+    </label>
+  <%
+  }
+  %>
+  <div class="utility-bar">
+    <div class="utility-bar__inner">
+      <time datetime="<%= new Date().toISOString() %>"><%= date(new Date(), 'dddd, MMMM D, YYYY') %></time>
+      <strong><%= midnight_text('labels.breaking', 'Breaking') %></strong>
+      <span><%= midnight_text('labels.utility_message', '') %></span>
+      <nav aria-label="<%= midnight_text('labels.utility_navigation', 'Utility') %>">
+        <% if (headerNewsletterAction) { %>
+          <a href="<%- midnight_i18n_url('/newsletter/') %>"><%= __('newsletter') %></a>
+        <% } %>
+        <a href="<%- url_for('/atom.xml') %>">RSS</a>
+        <a href="<%- midnight_i18n_url('/advertise/') %>"><%= __('advertise') %></a>
+        <% languageSelectMarkup('language-select--utility') %>
+        <% themeToggleMarkup('theme-toggle--utility') %>
+      </nav>
+    </div>
+  </div>
+
+  <%
+  const appearance = theme.appearance || {};
+  const brandName = appearance.logo_text || appearance.nick || config.title || theme.name || 'midnight';
+  const brandNick = appearance.nick || appearance.logo_text || config.title || theme.name || 'midnight';
+  const brandInitial = Array.from(String(brandNick).trim())[0] || 'm';
+  const brandLogo = appearance.logo;
+  const brandTagline = midnight_value(appearance.tagline, midnight_text('labels.brand_tagline', config.subtitle || ''));
+  %>
+  <div class="navbar">
+    <div class="brand-lockup">
+      <a class="brand" href="<%- midnight_i18n_url('/') %>" aria-label="<%= brandName %>">
+        <% if (brandLogo) { %>
+          <span class="brand-mark brand-mark--image"><img src="<%- url_for(brandLogo) %>" alt="" loading="eager"></span>
+        <% } else { %>
+          <span class="brand-mark brand-mark--initial" aria-hidden="true"><%= brandInitial %></span>
+        <% } %>
+        <span><%= brandName %></span>
+      </a>
+      <% if (brandTagline) { %>
+        <!-- <span class="brand-tagline"><%= brandTagline %></span> -->
+      <% } %>
+    </div>
+
+    <nav class="site-nav" aria-label="<%= midnight_text('labels.primary_navigation', 'Primary') %>">
+      <% primaryNav.forEach((item) => { const active = isNavActive(item); %>
+        <a class="nav-link nav-link--<%= navStyle(item) %><%= active ? ' is-active' : '' %>" href="<%- navUrl(item) %>"><%= navLabel(item) %></a>
+      <% }) %>
+    </nav>
+
+    <form class="site-search" action="<%- midnight_i18n_url('/search/') %>" role="search">
+      <input type="search" name="q" placeholder="<%= midnight_text('labels.search_placeholder', 'Search') %>" aria-label="<%= midnight_text('labels.search', 'Search') %>">
+    </form>
+
+    <% if (headerNewsletterAction) { %>
+      <a class="subscribe-button" href="<%- midnight_i18n_url('/newsletter/') %>"><%= midnight_text('labels.subscribe', 'Subscribe') %></a>
+    <% } %>
+    <button class="mobile-menu-toggle" type="button" data-mobile-menu-toggle aria-expanded="false" aria-controls="mobile-menu">
+      <span class="sr-only"><%= midnight_text('labels.mobile_menu', 'Menu') %></span>
+      <i aria-hidden="true"></i>
+      <i aria-hidden="true"></i>
+      <i aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <div class="mobile-menu-backdrop" data-mobile-menu-close hidden></div>
+  <aside class="mobile-menu" id="mobile-menu" data-mobile-menu hidden aria-hidden="true">
+    <div class="mobile-menu__head">
+      <strong><%= brandName %></strong>
+      <button class="mobile-menu__close" type="button" data-mobile-menu-close aria-label="<%= midnight_text('labels.close_menu', 'Close menu') %>">x</button>
+    </div>
+    <div class="mobile-menu__brief">
+      <time datetime="<%= new Date().toISOString() %>"><%= date(new Date(), 'dddd, MMMM D, YYYY') %></time>
+      <strong><%= midnight_text('labels.breaking', 'Breaking') %></strong>
+      <span><%= midnight_text('labels.utility_message', '') %></span>
+    </div>
+    <form class="mobile-menu__search" action="<%- midnight_i18n_url('/search/') %>" role="search">
+      <input type="search" name="q" placeholder="<%= midnight_text('labels.search_placeholder', 'Search') %>" aria-label="<%= midnight_text('labels.search', 'Search') %>">
+    </form>
+    <nav class="mobile-menu__nav" aria-label="<%= midnight_text('labels.primary_navigation', 'Primary') %>">
+      <% primaryNav.forEach((item) => { const active = isNavActive(item); %>
+        <a class="<%= active ? 'is-active' : '' %>" href="<%- navUrl(item) %>"><%= navLabel(item) %></a>
+      <% }) %>
+    </nav>
+    <div class="mobile-menu__tools">
+      <% languageSelectMarkup('language-select--mobile') %>
+      <% themeToggleMarkup('theme-toggle--mobile') %>
+    </div>
+    <nav class="mobile-menu__utility" aria-label="<%= midnight_text('labels.utility_navigation', 'Utility') %>">
+      <% if (headerNewsletterAction) { %>
+        <a href="<%- midnight_i18n_url('/newsletter/') %>"><%= __('newsletter') %></a>
+      <% } %>
+      <a href="<%- url_for('/atom.xml') %>">RSS</a>
+      <a href="<%- midnight_i18n_url('/advertise/') %>"><%= __('advertise') %></a>
+    </nav>
+    <% if (headerNewsletterAction) { %>
+      <a class="mobile-menu__subscribe" href="<%- midnight_i18n_url('/newsletter/') %>"><%= midnight_text('labels.subscribe', 'Subscribe') %></a>
+    <% } %>
+  </aside>
+</header>

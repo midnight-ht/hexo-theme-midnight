@@ -1,0 +1,23 @@
+home: Home
+archives: Archives
+about: About
+latest_posts: Latest Posts
+read_more: Read More
+posted_on: Posted on
+language: Language
+translations: Translations
+no_translations: No other language versions yet
+model_session: Model Session
+system_prompt: System Prompt
+ask_article: Ask about this article
+send: Send
+endpoint_missing: Model session endpoint is not configured
+comments: Comments
+tags: Tags
+categories: Categories
+archive: Archive
+newsletter: Newsletter
+rss: RSS
+advertise: Advertise
+privacy: Privacy
+sitemap: Sitemap
