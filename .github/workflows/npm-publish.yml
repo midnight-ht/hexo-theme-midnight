@@ -46,7 +46,6 @@ jobs:
         run: |
           npm run lint:structure
           npm run lint:config-content
-          npm run lint:a11y
           npm run lint:comments
           npm run lint:analytics
           npm run lint:model-session

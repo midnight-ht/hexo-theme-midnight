@@ -148,6 +148,8 @@ git push origin master --follow-tags
 
 tag 必须使用 `v*.*.*` 格式，并与 package 版本一致，例如 `v0.1.1`。
 
+发布 workflow 只运行适合 npm 包发布的检查。像 `npm run lint:a11y` 这种依赖示例站点生成产物的检查，应在本地构建 example site 后运行。
+
 ## 开源协议
 
 MIT

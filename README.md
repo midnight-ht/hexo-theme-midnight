@@ -148,6 +148,8 @@ git push origin master --follow-tags
 
 The tag must use the `v*.*.*` format and match the package version, for example `v0.1.1`.
 
+The release workflow runs package-safe checks only. Checks that require a generated example site, such as `npm run lint:a11y`, should be run locally after building the example site.
+
 ## License
 
 MIT
