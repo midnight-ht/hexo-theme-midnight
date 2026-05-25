@@ -1,0 +1,5 @@
+example-site/**
+node_modules/**
+docs/**
+.git/**
+.claude/**
