@@ -137,7 +137,16 @@ npm pack --dry-run
 
 ## npm 发布
 
-仓库已包含 GitHub Actions 自动发布流程。将 npm automation token 配置为仓库 Secret `NPM_TOKEN` 后，发布 GitHub Release 即可同步发布到 npm；Release 的 tag 建议与 `package.json` 中的版本保持一致。
+仓库已包含 GitHub Actions 自动发布流程。将 npm automation token 配置为仓库 Secret `NPM_TOKEN` 后，推送版本 tag 会自动创建 GitHub Release 并同步发布到 npm。
+
+更新 `package.json` 版本后推送匹配 tag：
+
+```bash
+npm version patch
+git push origin master --follow-tags
+```
+
+tag 必须使用 `v*.*.*` 格式，并与 package 版本一致，例如 `v0.1.1`。
 
 ## 开源协议
 

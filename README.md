@@ -137,7 +137,16 @@ npm pack --dry-run
 
 ## npm Release
 
-This repository includes a GitHub Actions workflow that publishes the package to npm when a GitHub Release is published. Add an npm automation token as the repository secret `NPM_TOKEN`, then create a release whose tag matches the version in `package.json`.
+This repository includes a GitHub Actions workflow that creates a GitHub Release and publishes the package to npm when a version tag is pushed.
+
+Add an npm automation token as the repository secret `NPM_TOKEN`, update `package.json`, then push a matching tag:
+
+```bash
+npm version patch
+git push origin master --follow-tags
+```
+
+The tag must use the `v*.*.*` format and match the package version, for example `v0.1.1`.
 
 ## License
 
