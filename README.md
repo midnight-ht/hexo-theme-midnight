@@ -135,6 +135,10 @@ Before publishing, preview the package contents:
 npm pack --dry-run
 ```
 
+## npm Release
+
+This repository includes a GitHub Actions workflow that publishes the package to npm when a GitHub Release is published. Add an npm automation token as the repository secret `NPM_TOKEN`, then create a release whose tag matches the version in `package.json`.
+
 ## License
 
 MIT

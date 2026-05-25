@@ -135,6 +135,10 @@ npm run lint:model-session
 npm pack --dry-run
 ```
 
+## npm 发布
+
+仓库已包含 GitHub Actions 自动发布流程。将 npm automation token 配置为仓库 Secret `NPM_TOKEN` 后，发布 GitHub Release 即可同步发布到 npm；Release 的 tag 建议与 `package.json` 中的版本保持一致。
+
 ## 开源协议
 
 MIT
