@@ -1,7 +1,45 @@
 'use strict';
 
+let midnightTranslationIndex = {};
+
+function getThemeConfig(ctx) {
+  return (ctx.theme && (ctx.theme.config || ctx.theme)) || {};
+}
+
+function postTranslationItem(post, helper, cfg, langField) {
+  const path = post.path || '/';
+  const permalink = post.permalink || (helper && typeof helper.full_url_for === 'function' ? helper.full_url_for(path) : path);
+
+  return {
+    title: post.title,
+    lang: post[langField] || post.lang || cfg.default_lang || 'zh-CN',
+    path,
+    permalink
+  };
+}
+
+hexo.extend.generator.register('midnight_i18n_translation_index', function midnightI18nTranslationIndex(locals) {
+  const themeConfig = getThemeConfig(this);
+  const cfg = themeConfig.i18n || {};
+  const keyField = cfg.translation_key_field || 'translation_key';
+  const langField = cfg.article_lang_field || 'lang';
+  const posts = locals.posts && locals.posts.toArray ? locals.posts.toArray() : [];
+  const index = {};
+
+  posts.forEach((post) => {
+    const key = post && post[keyField];
+    if (!key) return;
+
+    if (!index[key]) index[key] = [];
+    index[key].push(postTranslationItem(post, this, cfg, langField));
+  });
+
+  midnightTranslationIndex = index;
+  return [];
+});
+
 hexo.extend.helper.register('midnight_page_lang', function midnightPageLang(page) {
-  const themeConfig = (this.theme && (this.theme.config || this.theme)) || {};
+  const themeConfig = getThemeConfig(this);
   const cfg = themeConfig.i18n || {};
   const field = cfg.article_lang_field || 'lang';
   const siteLanguage = Array.isArray(this.config.language) ? this.config.language[0] : this.config.language;
@@ -9,7 +47,7 @@ hexo.extend.helper.register('midnight_page_lang', function midnightPageLang(page
 });
 
 hexo.extend.helper.register('midnight_translations', function midnightTranslations(page) {
-  const themeConfig = (this.theme && (this.theme.config || this.theme)) || {};
+  const themeConfig = getThemeConfig(this);
   const cfg = themeConfig.i18n || {};
   const keyField = cfg.translation_key_field || 'translation_key';
   const langField = cfg.article_lang_field || 'lang';
@@ -27,17 +65,17 @@ hexo.extend.helper.register('midnight_translations', function midnightTranslatio
     });
   }
 
-  if (key && this.site && this.site.posts) {
-    this.site.posts
-      .filter((post) => post[keyField] === key)
-      .forEach((post) => {
-        translations.push({
-          title: post.title,
-          lang: post[langField] || post.lang || cfg.default_lang || 'zh-CN',
-          path: post.path,
-          permalink: post.permalink || this.full_url_for(post.path || '/')
+  if (key) {
+    (midnightTranslationIndex[key] || [])
+      .forEach((item) => translations.push(item));
+
+    if (!midnightTranslationIndex[key] && this.site && this.site.posts) {
+      this.site.posts
+        .filter((post) => post[keyField] === key)
+        .forEach((post) => {
+          translations.push(postTranslationItem(post, this, cfg, langField));
         });
-      });
+    }
   }
 
   return uniqueTranslations(translations, page)
