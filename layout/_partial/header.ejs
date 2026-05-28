@@ -134,9 +134,8 @@
     <% } %>
     <button class="mobile-menu-toggle" type="button" data-mobile-menu-toggle aria-expanded="false" aria-controls="mobile-menu">
       <span class="sr-only"><%= midnight_text('labels.mobile_menu', 'Menu') %></span>
-      <i aria-hidden="true"></i>
-      <i aria-hidden="true"></i>
-      <i aria-hidden="true"></i>
+      <img class="mobile-menu-toggle__icon mobile-menu-toggle__icon--menu" src="<%- url_for('/icons/menu.svg') %>" alt="" aria-hidden="true" loading="eager">
+      <img class="mobile-menu-toggle__icon mobile-menu-toggle__icon--close" src="<%- url_for('/icons/menu-close.svg') %>" alt="" aria-hidden="true" loading="eager">
     </button>
   </div>
 
