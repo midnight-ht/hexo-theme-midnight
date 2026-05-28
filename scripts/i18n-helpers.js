@@ -1,5 +1,16 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
+const yaml = require('js-yaml');
+
+let hexoSlugize = null;
+try {
+  hexoSlugize = require('hexo-util').slugize;
+} catch (error) {
+  hexoSlugize = null;
+}
+
 let midnightTranslationIndex = {};
 
 function getThemeConfig(ctx) {
@@ -8,7 +19,7 @@ function getThemeConfig(ctx) {
 
 function postTranslationItem(post, helper, cfg, langField) {
   const path = post.path || '/';
-  const permalink = post.permalink || (helper && typeof helper.full_url_for === 'function' ? helper.full_url_for(path) : path);
+  const permalink = post.permalink || (helper && typeof helper.full_url_for === 'function' ? helper.full_url_for(path) : '');
 
   return {
     title: post.title,
@@ -18,6 +29,113 @@ function postTranslationItem(post, helper, cfg, langField) {
   };
 }
 
+function readSourcePosts(ctx, cfg, langField) {
+  const sourceDir = ctx.source_dir || path.join(ctx.base_dir || process.cwd(), 'source');
+  const postsDir = path.join(sourceDir, '_posts');
+  const files = listMarkdownFiles(postsDir);
+
+  return files
+    .map((file) => sourcePostFromFile(ctx, file, postsDir, cfg, langField))
+    .filter(Boolean);
+}
+
+function listMarkdownFiles(dir) {
+  if (!fs.existsSync(dir)) return [];
+
+  return fs.readdirSync(dir, { withFileTypes: true }).reduce((files, entry) => {
+    const file = path.join(dir, entry.name);
+    if (entry.isDirectory()) return files.concat(listMarkdownFiles(file));
+    if (entry.isFile() && /\.(?:md|markdown|mkd|mkdn|mdwn|mdtxt|mdtext)$/i.test(entry.name)) files.push(file);
+    return files;
+  }, []);
+}
+
+function sourcePostFromFile(ctx, file, postsDir, cfg, langField) {
+  const content = fs.readFileSync(file, 'utf8');
+  const frontMatter = parseFrontMatter(content);
+  if (!frontMatter) return null;
+
+  const relative = path.relative(postsDir, file).replace(/\\/g, '/');
+  const slug = relative.replace(/\.[^.]+$/, '');
+  const date = parsePostDate(frontMatter.date, file);
+  const post = {
+    ...frontMatter,
+    lang: frontMatter[langField] || frontMatter.lang || cfg.default_lang || 'zh-CN',
+    slug: frontMatter.slug || slug,
+    path: frontMatter.permalink ? normalizeSourcePermalink(frontMatter.permalink) : buildSourcePostPath(ctx, frontMatter, slug, date),
+    permalink: ''
+  };
+
+  post.permalink = ctx.full_url_for ? ctx.full_url_for(post.path) : '';
+  return post;
+}
+
+function parseFrontMatter(content) {
+  const match = String(content || '').match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!match) return null;
+
+  try {
+    return yaml.load(match[1]) || {};
+  } catch (error) {
+    return null;
+  }
+}
+
+function parsePostDate(value, file) {
+  const date = value ? new Date(value) : fs.statSync(file).birthtime;
+  return Number.isNaN(date.getTime()) ? fs.statSync(file).birthtime : date;
+}
+
+function pad(value) {
+  return String(value).padStart(2, '0');
+}
+
+function slugifySegment(value) {
+  if (hexoSlugize) return hexoSlugize(String(value || ''), { transform: 1 });
+
+  return String(value || '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/^\/+|\/+$/g, '');
+}
+
+function normalizeSourcePermalink(value) {
+  const permalink = String(value || '/').replace(/^\/+/, '');
+  if (!permalink) return '/';
+  return permalink.endsWith('/') || /\.[a-z0-9]+$/i.test(permalink) ? permalink : `${permalink}/`;
+}
+
+function buildSourcePostPath(ctx, frontMatter, slug, date) {
+  const config = ctx.config || {};
+  const rule = config.permalink || ':year/:month/:day/:title/';
+  const langField = ((getThemeConfig(ctx).i18n || {}).article_lang_field) || 'lang';
+  const lang = frontMatter[langField] || frontMatter.lang || (getThemeConfig(ctx).i18n || {}).default_lang || 'zh-CN';
+  const title = slugifySegment(frontMatter.slug || slug);
+  const postTitle = slugifySegment(frontMatter.title || title);
+  const values = {
+    lang,
+    title,
+    name: path.posix.basename(title),
+    post_title: postTitle,
+    year: String(date.getFullYear()),
+    month: pad(date.getMonth() + 1),
+    day: pad(date.getDate()),
+    hour: pad(date.getHours()),
+    minute: pad(date.getMinutes()),
+    second: pad(date.getSeconds()),
+    i_month: String(date.getMonth() + 1),
+    i_day: String(date.getDate()),
+    category: config.default_category || 'uncategorized'
+  };
+
+  Object.keys(frontMatter || {}).forEach((key) => {
+    if (values[key] === undefined && frontMatter[key] !== undefined) values[key] = slugifySegment(frontMatter[key]);
+  });
+
+  const route = rule.replace(/:([A-Za-z0-9_]+)/g, (match, key) => values[key] !== undefined ? values[key] : match);
+  return normalizeSourcePermalink(route);
+}
+
 hexo.extend.generator.register('midnight_i18n_translation_index', function midnightI18nTranslationIndex(locals) {
   const themeConfig = getThemeConfig(this);
   const cfg = themeConfig.i18n || {};
@@ -25,6 +143,14 @@ hexo.extend.generator.register('midnight_i18n_translation_index', function midni
   const langField = cfg.article_lang_field || 'lang';
   const posts = locals.posts && locals.posts.toArray ? locals.posts.toArray() : [];
   const index = {};
+
+  readSourcePosts(this, cfg, langField).forEach((post) => {
+    const key = post && post[keyField];
+    if (!key) return;
+
+    if (!index[key]) index[key] = [];
+    index[key].push(postTranslationItem(post, this, cfg, langField));
+  });
 
   posts.forEach((post) => {
     const key = post && post[keyField];

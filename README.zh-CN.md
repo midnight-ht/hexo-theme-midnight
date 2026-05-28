@@ -38,6 +38,18 @@ theme: midnight
 npm install hexo-generator-sitemap hexo-generator-feed
 ```
 
+## 演示站点
+
+本地启动内置 example site：
+
+```bash
+cd example-site
+npm install
+npm run server
+```
+
+然后打开 `http://localhost:4000`。
+
 ## 配置
 
 将主题 `_config.yml` 复制到站点的主题配置位置后按需调整。不要把任何服务商 API Key 放进主题配置或前端代码。

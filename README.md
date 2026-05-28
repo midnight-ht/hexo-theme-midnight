@@ -38,6 +38,18 @@ Recommended site plugins:
 npm install hexo-generator-sitemap hexo-generator-feed
 ```
 
+## Demo Site
+
+Run the bundled example site locally:
+
+```bash
+cd example-site
+npm install
+npm run server
+```
+
+Then open `http://localhost:4000`.
+
 ## Configuration
 
 Copy the theme `_config.yml` into your site's theme config location, then adjust values for your site. Keep provider secrets out of the theme config and frontend code.
