@@ -67,7 +67,7 @@ comments:
 
 ## Article i18n
 
-Use the same `translation_key` for translated versions:
+Use the same `translation_key` for translated versions. During generation, Midnight looks up every post with that key and uses each post's real `path`, so translated articles can have different slugs:
 
 ```yaml
 ---
@@ -84,6 +84,20 @@ lang: zh-CN
 translation_key: hello-midnight
 ---
 ```
+
+If you cannot share a key, declare explicit translation routes in front matter:
+
+```yaml
+---
+title: Hello Midnight
+lang: en
+translations:
+  zh-CN: /zh-CN/2026/05/19/ni-hao-midnight/
+  en: /en/2026/05/19/hello-midnight/
+---
+```
+
+On post pages, missing translations are not fabricated by replacing only the language prefix. This avoids sending readers to non-existent localized slugs.
 
 ## Navigation
 

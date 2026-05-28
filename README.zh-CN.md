@@ -67,7 +67,7 @@ comments:
 
 ## 多语言文章
 
-多语言版本使用相同的 `translation_key`：
+多语言版本使用相同的 `translation_key`。生成站点时，Midnight 会查找同一个 key 下的所有文章，并使用每篇文章真实的 `path`，所以不同语言可以使用不同 slug：
 
 ```yaml
 ---
@@ -84,6 +84,20 @@ lang: zh-CN
 translation_key: hello-midnight
 ---
 ```
+
+如果暂时不能共用 key，也可以在 front matter 里显式声明翻译地址：
+
+```yaml
+---
+title: Hello Midnight
+lang: en
+translations:
+  zh-CN: /zh-CN/2026/05/19/ni-hao-midnight/
+  en: /en/2026/05/19/hello-midnight/
+---
+```
+
+文章页不会再只替换语言前缀来生成不存在的翻译地址，避免读者切换语言时进入 404。
 
 ## 导航
 

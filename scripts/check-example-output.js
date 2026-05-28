@@ -53,6 +53,22 @@ const sitemap = readPublic('sitemap.xml');
   });
 });
 
+const zhPostHtml = readPublic('zh-CN/2026/05/19/midnight-agent-zh/index.html');
+if (!zhPostHtml.includes('href="/en/2026/05/19/midnight-agent-en/" hreflang="en"')) {
+  fail('Chinese post language switcher must link to the real English post path.');
+}
+if (zhPostHtml.includes('/en/2026/05/19/midnight-agent-zh/')) {
+  fail('Chinese post language switcher must not fabricate an English path by replacing only the language prefix.');
+}
+
+const enPostHtml = readPublic('en/2026/05/19/midnight-agent-en/index.html');
+if (!enPostHtml.includes('href="/zh-CN/2026/05/19/midnight-agent-zh/" hreflang="zh-CN"')) {
+  fail('English post language switcher must link to the real Chinese post path.');
+}
+if (enPostHtml.includes('/zh-CN/2026/05/19/midnight-agent-en/')) {
+  fail('English post language switcher must not fabricate a Chinese path by replacing only the language prefix.');
+}
+
 const notFound = readPublic('404.html');
 [
   'class="not-found"',

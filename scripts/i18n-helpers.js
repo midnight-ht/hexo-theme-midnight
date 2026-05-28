@@ -13,18 +13,34 @@ hexo.extend.helper.register('midnight_translations', function midnightTranslatio
   const cfg = themeConfig.i18n || {};
   const keyField = cfg.translation_key_field || 'translation_key';
   const langField = cfg.article_lang_field || 'lang';
-  const key = page[keyField];
+  const translations = [];
 
-  if (!key) return [];
+  getExplicitTranslations(page, this, langField).forEach((item) => translations.push(item));
 
-  return this.site.posts
-    .filter((post) => post[keyField] === key)
-    .map((post) => ({
-      title: post.title,
-      lang: post[langField] || post.lang || cfg.default_lang || 'zh-CN',
-      path: post.path,
-      permalink: post.permalink || this.full_url_for(post.path || '/')
-    }))
+  const key = page && page[keyField];
+  if (page && (translations.length || key)) {
+    translations.push({
+      title: page.title,
+      lang: page[langField] || page.lang || cfg.default_lang || 'zh-CN',
+      path: page.path,
+      permalink: page.permalink || this.full_url_for(page.path || '/')
+    });
+  }
+
+  if (key && this.site && this.site.posts) {
+    this.site.posts
+      .filter((post) => post[keyField] === key)
+      .forEach((post) => {
+        translations.push({
+          title: post.title,
+          lang: post[langField] || post.lang || cfg.default_lang || 'zh-CN',
+          path: post.path,
+          permalink: post.permalink || this.full_url_for(post.path || '/')
+        });
+      });
+  }
+
+  return uniqueTranslations(translations, page)
     .sort((a, b) => a.lang.localeCompare(b.lang));
 });
 
@@ -111,6 +127,85 @@ function routeForLanguage(helper, path, lang, page) {
   return `/${lang}${cleanRoute}`;
 }
 
+function isPostPage(page) {
+  if (!page) return false;
+  if (page.layout === 'post') return true;
+  if (page.__post) return true;
+  return Boolean(page.source && String(page.source).includes('_posts'));
+}
+
+function explicitTranslationItem(lang, value, helper, langField) {
+  if (!lang || !value) return null;
+
+  if (typeof value === 'string') {
+    return {
+      lang,
+      title: lang,
+      path: value,
+      permalink: isExternalUrl(value) ? value : helper.full_url_for(value)
+    };
+  }
+
+  if (typeof value !== 'object') return null;
+
+  const itemLang = value[langField] || value.lang || lang;
+  const itemPath = value.path || value.url || value.permalink;
+  if (!itemLang || !itemPath) return null;
+
+  return {
+    lang: itemLang,
+    title: value.title || itemLang,
+    path: itemPath,
+    permalink: value.permalink || (isExternalUrl(itemPath) ? itemPath : helper.full_url_for(itemPath))
+  };
+}
+
+function getExplicitTranslations(page, helper, langField) {
+  const raw = page && (page.translations || page.translation || page.alternates || page.alternate);
+  if (!raw) return [];
+
+  if (Array.isArray(raw)) {
+    return raw
+      .map((item) => explicitTranslationItem(item && (item[langField] || item.lang), item, helper, langField))
+      .filter(Boolean);
+  }
+
+  if (typeof raw === 'object') {
+    return Object.keys(raw)
+      .map((lang) => explicitTranslationItem(lang, raw[lang], helper, langField))
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+function translationIdentity(item) {
+  return normalizeRoute(item.path || item.permalink || '/');
+}
+
+function uniqueTranslations(items, page) {
+  const byLang = {};
+  const currentPath = normalizeRoute((page && page.path) || '/');
+
+  items.forEach((item) => {
+    if (!item || !item.lang) return;
+
+    const candidate = {
+      title: item.title || item.lang,
+      lang: item.lang,
+      path: item.path || '/',
+      permalink: item.permalink
+    };
+
+    const previous = byLang[candidate.lang];
+    if (!previous || translationIdentity(candidate) === currentPath) {
+      byLang[candidate.lang] = candidate;
+    }
+  });
+
+  return Object.values(byLang);
+}
+
 hexo.extend.helper.register('midnight_i18n_url', function midnightI18nUrl(path, page = this.page) {
   if (!path || isExternalUrl(path)) return path || '#';
 
@@ -151,25 +246,29 @@ hexo.extend.helper.register('midnight_language_links', function midnightLanguage
     };
   });
 
-  return languages.map((lang) => {
+  return languages.reduce((links, lang) => {
     const translated = byLang[lang];
     if (translated) {
-      return {
+      links.push({
         ...translated,
         active: translated.path === page.path || lang === currentLang
-      };
+      });
+      return links;
     }
 
+    if (isPostPage(page)) return links;
+
     const route = routeForLanguage(this, page.path || '/', lang, page);
-    return {
+    links.push({
       lang,
       title: lang,
       path: route,
       url: this.url_for(route),
       absolute_url: this.full_url_for(route),
       active: lang === currentLang
-    };
-  });
+    });
+    return links;
+  }, []);
 });
 
 function getByPath(source, path) {
