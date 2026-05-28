@@ -668,8 +668,36 @@ inner_pages:
           zh-CN: 视觉要有技术感，但不喧宾夺主。
           en: The interface should feel technical without overwhelming the reading.
     contact:
-      zh-CN: 可在 about 页面正文中补充团队、社交链接、合作方式和版权说明。
-      en: Add team details, social links, collaboration notes, and copyright copy in the about page body.
+      name:
+        zh-CN: Midnight Team
+        en: Midnight Team
+      role:
+        zh-CN: 内容合作 / 技术发布
+        en: Content partnerships / Technical publishing
+      avatar: ""
+      description:
+        zh-CN: 欢迎交流主题定制、内容共创、广告投放、专题合作和长期技术媒体建设。请尽量说明合作目标、时间周期和预算范围，方便快速判断匹配度。
+        en: Reach out for theme customization, co-created content, advertising, topic sponsorships, or long-term technical media work. Include goals, timing, and budget range so we can evaluate fit quickly.
+      links:
+        - type: wechat
+          label:
+            zh-CN: 微信
+            en: WeChat
+          url: weixin://
+        - type: email
+          label:
+            zh-CN: 邮箱
+            en: Email
+          url: mailto:ht@zyweb.vip
+        - type: github
+          label: GitHub
+          url: https://github.com/midnight-ht/hexo-theme-midnight
+        - type: csdn
+          label: CSDN
+          url: https://blog.csdn.net/
+      footer:
+        zh-CN: 通常 1-2 个工作日回复；商业合作请优先通过邮箱发送完整需求。
+        en: Replies usually arrive within 1-2 business days; for commercial work, email a complete brief first.
     map:
       - title:
           zh-CN: 静态优先工作流
