@@ -82,6 +82,9 @@ const searchPage = readPublic('search/index.html');
 if (!searchPage.includes('site-owned search provider')) fail('search/index.html is missing search integration guidance.');
 
 const homePage = readPublic('index.html');
+if (!homePage.includes('<title>Midnight Example</title>')) {
+  fail('index.html should not duplicate the site title.');
+}
 if (!homePage.includes('var supportedLanguages = ["zh-CN","en"];')) {
   fail('index.html should include the early language switch script.');
 }

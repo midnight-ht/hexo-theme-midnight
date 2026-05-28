@@ -22,7 +22,12 @@
     theme.description ||
     ''
   ).replace(/\s+/g, ' ').trim().substring(0, 160);
-  const pageTitle = headRawTitle ? `${headRawTitle}${titleSeparator}${config.title}` : config.title;
+  const siteTitle = String(config.title || '').trim();
+  const normalizedHeadTitle = String(headRawTitle || '').trim();
+  const duplicateSiteTitle = normalizedHeadTitle && siteTitle && normalizedHeadTitle.toLowerCase() === siteTitle.toLowerCase();
+  const pageTitle = normalizedHeadTitle
+    ? (duplicateSiteTitle ? siteTitle : `${normalizedHeadTitle}${titleSeparator}${siteTitle}`)
+    : siteTitle;
   const pageUrl = midnight_canonical_url(page);
   const ogImage = page.og_image || page.cover || seoCfg.open_graph_image || '';
   const favicon = theme.favicon || '';
