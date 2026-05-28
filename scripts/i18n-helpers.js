@@ -1,17 +1,33 @@
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
-const yaml = require('js-yaml');
-
+let midnightTranslationIndex = {};
+let midnightNodeDeps = null;
 let hexoSlugize = null;
-try {
-  hexoSlugize = require('hexo-util').slugize;
-} catch (error) {
-  hexoSlugize = null;
+
+function loadModule(name) {
+  if (typeof require !== 'function') return null;
+
+  try {
+    return require(name);
+  } catch (error) {
+    return null;
+  }
 }
 
-let midnightTranslationIndex = {};
+function getNodeDeps() {
+  if (midnightNodeDeps) return midnightNodeDeps;
+
+  midnightNodeDeps = {
+    fs: loadModule('fs'),
+    path: loadModule('path'),
+    yaml: loadModule('js-yaml')
+  };
+
+  const hexoUtil = loadModule('hexo-util');
+  hexoSlugize = hexoUtil && hexoUtil.slugize ? hexoUtil.slugize : null;
+
+  return midnightNodeDeps;
+}
 
 function getThemeConfig(ctx) {
   return (ctx.theme && (ctx.theme.config || ctx.theme)) || {};
@@ -30,6 +46,9 @@ function postTranslationItem(post, helper, cfg, langField) {
 }
 
 function readSourcePosts(ctx, cfg, langField) {
+  const { fs, path } = getNodeDeps();
+  if (!fs || !path) return [];
+
   const sourceDir = ctx.source_dir || path.join(ctx.base_dir || process.cwd(), 'source');
   const postsDir = path.join(sourceDir, '_posts');
   const files = listMarkdownFiles(postsDir);
@@ -40,6 +59,9 @@ function readSourcePosts(ctx, cfg, langField) {
 }
 
 function listMarkdownFiles(dir) {
+  const { fs, path } = getNodeDeps();
+  if (!fs || !path) return [];
+
   if (!fs.existsSync(dir)) return [];
 
   return fs.readdirSync(dir, { withFileTypes: true }).reduce((files, entry) => {
@@ -51,6 +73,9 @@ function listMarkdownFiles(dir) {
 }
 
 function sourcePostFromFile(ctx, file, postsDir, cfg, langField) {
+  const { fs, path } = getNodeDeps();
+  if (!fs || !path) return null;
+
   const content = fs.readFileSync(file, 'utf8');
   const frontMatter = parseFrontMatter(content);
   if (!frontMatter) return null;
@@ -71,6 +96,9 @@ function sourcePostFromFile(ctx, file, postsDir, cfg, langField) {
 }
 
 function parseFrontMatter(content) {
+  const { yaml } = getNodeDeps();
+  if (!yaml) return null;
+
   const match = String(content || '').match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!match) return null;
 
@@ -82,6 +110,9 @@ function parseFrontMatter(content) {
 }
 
 function parsePostDate(value, file) {
+  const { fs } = getNodeDeps();
+  if (!fs) return value ? new Date(value) : new Date();
+
   const date = value ? new Date(value) : fs.statSync(file).birthtime;
   return Number.isNaN(date.getTime()) ? fs.statSync(file).birthtime : date;
 }
@@ -91,6 +122,7 @@ function pad(value) {
 }
 
 function slugifySegment(value) {
+  getNodeDeps();
   if (hexoSlugize) return hexoSlugize(String(value || ''), { transform: 1 });
 
   return String(value || '')
@@ -106,6 +138,7 @@ function normalizeSourcePermalink(value) {
 }
 
 function buildSourcePostPath(ctx, frontMatter, slug, date) {
+  const { path } = getNodeDeps();
   const config = ctx.config || {};
   const rule = config.permalink || ':year/:month/:day/:title/';
   const langField = ((getThemeConfig(ctx).i18n || {}).article_lang_field) || 'lang';
@@ -115,7 +148,7 @@ function buildSourcePostPath(ctx, frontMatter, slug, date) {
   const values = {
     lang,
     title,
-    name: path.posix.basename(title),
+    name: path && path.posix ? path.posix.basename(title) : title.split('/').pop(),
     post_title: postTitle,
     year: String(date.getFullYear()),
     month: pad(date.getMonth() + 1),
@@ -136,33 +169,35 @@ function buildSourcePostPath(ctx, frontMatter, slug, date) {
   return normalizeSourcePermalink(route);
 }
 
-hexo.extend.generator.register('midnight_i18n_translation_index', function midnightI18nTranslationIndex(locals) {
-  const themeConfig = getThemeConfig(this);
-  const cfg = themeConfig.i18n || {};
-  const keyField = cfg.translation_key_field || 'translation_key';
-  const langField = cfg.article_lang_field || 'lang';
-  const posts = locals.posts && locals.posts.toArray ? locals.posts.toArray() : [];
-  const index = {};
+if (hexo.extend.generator && typeof hexo.extend.generator.register === 'function') {
+  hexo.extend.generator.register('midnight_i18n_translation_index', function midnightI18nTranslationIndex(locals) {
+    const themeConfig = getThemeConfig(this);
+    const cfg = themeConfig.i18n || {};
+    const keyField = cfg.translation_key_field || 'translation_key';
+    const langField = cfg.article_lang_field || 'lang';
+    const posts = locals.posts && locals.posts.toArray ? locals.posts.toArray() : [];
+    const index = {};
 
-  readSourcePosts(this, cfg, langField).forEach((post) => {
-    const key = post && post[keyField];
-    if (!key) return;
+    readSourcePosts(this, cfg, langField).forEach((post) => {
+      const key = post && post[keyField];
+      if (!key) return;
 
-    if (!index[key]) index[key] = [];
-    index[key].push(postTranslationItem(post, this, cfg, langField));
+      if (!index[key]) index[key] = [];
+      index[key].push(postTranslationItem(post, this, cfg, langField));
+    });
+
+    posts.forEach((post) => {
+      const key = post && post[keyField];
+      if (!key) return;
+
+      if (!index[key]) index[key] = [];
+      index[key].push(postTranslationItem(post, this, cfg, langField));
+    });
+
+    midnightTranslationIndex = index;
+    return [];
   });
-
-  posts.forEach((post) => {
-    const key = post && post[keyField];
-    if (!key) return;
-
-    if (!index[key]) index[key] = [];
-    index[key].push(postTranslationItem(post, this, cfg, langField));
-  });
-
-  midnightTranslationIndex = index;
-  return [];
-});
+}
 
 hexo.extend.helper.register('midnight_page_lang', function midnightPageLang(page) {
   const themeConfig = getThemeConfig(this);

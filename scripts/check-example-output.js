@@ -89,6 +89,17 @@ if (!homePage.includes('class="archive-card archive-card--v2 latest-list__item"'
   fail('index.html latest posts should render as an article list.');
 }
 
+[
+  ['zh-CN/index.html', 'lang="zh-CN"'],
+  ['en/index.html', 'lang="en"']
+].forEach(([file, langAttr]) => {
+  const html = readPublic(file);
+  if (!html.includes(langAttr)) fail(`${file} is missing ${langAttr}.`);
+  if (!html.includes('class="archive-card archive-card--v2 latest-list__item"')) {
+    fail(`${file} should render the localized latest posts list.`);
+  }
+});
+
 const zhChannelPage = readPublic('zh-CN/tags/AI-Agent/index.html');
 if (zhChannelPage.includes('section-heading__more')) {
   fail('zh-CN AI Agent channel should not render a self-referential view-more link.');

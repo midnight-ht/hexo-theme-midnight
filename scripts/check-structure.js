@@ -46,6 +46,7 @@ const required = [
   'scripts/check-model-session-render.js',
   'scripts/check-newsletter-render.js',
   'scripts/check-excerpt-helper.js',
+  'scripts/home-i18n-generator.js',
   'scripts/inner-page-i18n-generator.js',
   'scripts/tag-i18n-generator.js',
   'scripts/not-found-generator.js',
