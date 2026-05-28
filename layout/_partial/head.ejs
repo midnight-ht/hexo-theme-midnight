@@ -27,8 +27,83 @@
   const ogImage = page.og_image || page.cover || seoCfg.open_graph_image || '';
   const favicon = theme.favicon || '';
   const appleTouchIcon = theme.apple_touch_icon || '';
+  const headI18n = (theme && theme.i18n) || {};
+  const headLanguages = Array.isArray(headI18n.languages) ? headI18n.languages.filter(Boolean) : [];
+  const headRoot = (() => {
+    const value = String(config.root || '/');
+    return value.endsWith('/') ? value : `${value}/`;
+  })();
+  const headRoute = String(page.path || '').replace(/^\/+/, '').replace(/index\.html?$/i, '');
+  const shouldProbeLanguage = headLanguages.length > 1 && headRoute === '';
+  function headJson(value) {
+    return JSON.stringify(value).replace(/</g, '\\u003c');
+  }
   %>
   <title><%= pageTitle %></title>
+  <% if (shouldProbeLanguage) { %>
+    <script>
+      (function () {
+        var supportedLanguages = <%- headJson(headLanguages) %>;
+        var defaultLanguage = <%- headJson(headI18n.default_lang || headLanguages[0]) %>;
+        var root = <%- headJson(headRoot) %>;
+        var storageKey = 'midnight-language';
+        document.documentElement.dataset.languageProbing = 'true';
+
+        function languageBase(lang) {
+          return String(lang || '').split('-')[0].toLowerCase();
+        }
+
+        function supported(value) {
+          var exact = supportedLanguages.find(function (lang) {
+            return lang.toLowerCase() === String(value || '').toLowerCase();
+          });
+          if (exact) return exact;
+
+          var base = languageBase(value);
+          if (!base) return '';
+          return supportedLanguages.find(function (lang) {
+            return languageBase(lang) === base;
+          }) || '';
+        }
+
+        function readCookie() {
+          var match = document.cookie.match(/(?:^|;\s*)midnight-language=([^;]+)/);
+          return match ? decodeURIComponent(match[1]) : '';
+        }
+
+        function readStoredLanguage() {
+          var value = '';
+          try { value = window.localStorage.getItem(storageKey) || ''; } catch (e) {}
+          return supported(value) || supported(readCookie());
+        }
+
+        function browserLanguage() {
+          var languages = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ''];
+          for (var i = 0; i < languages.length; i += 1) {
+            var match = supported(languages[i]);
+            if (match) return match;
+          }
+          return '';
+        }
+
+        function finish() {
+          document.documentElement.dataset.languageProbing = 'false';
+        }
+
+        var targetLanguage = readStoredLanguage() || browserLanguage();
+        if (!targetLanguage) {
+          finish();
+          return;
+        }
+
+        try { window.localStorage.setItem(storageKey, targetLanguage); } catch (e) {}
+        try { document.cookie = storageKey + '=' + encodeURIComponent(targetLanguage) + '; path=/; max-age=31536000; samesite=lax'; } catch (e) {}
+
+        window.location.replace(root + encodeURIComponent(targetLanguage) + '/' + window.location.search + window.location.hash);
+        window.setTimeout(finish, 800);
+      })();
+    </script>
+  <% } %>
   <% if (theme.force_https) { %>
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <% } %>

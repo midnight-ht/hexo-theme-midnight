@@ -82,6 +82,18 @@ const searchPage = readPublic('search/index.html');
 if (!searchPage.includes('site-owned search provider')) fail('search/index.html is missing search integration guidance.');
 
 const homePage = readPublic('index.html');
+if (!homePage.includes('var supportedLanguages = ["zh-CN","en"];')) {
+  fail('index.html should include the early language switch script.');
+}
+if (!homePage.includes('midnight-language')) {
+  fail('index.html should check the stored language preference.');
+}
+if (!homePage.includes('navigator.languages')) {
+  fail('index.html should use browser language as the first-visit fallback.');
+}
+if (!homePage.includes('class="language-redirect-skeleton"')) {
+  fail('index.html should render the language redirect skeleton.');
+}
 if (!homePage.includes('class="section-heading__more" href="/archives/"')) {
   fail('index.html is missing the latest posts view-more archive link.');
 }

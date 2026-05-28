@@ -34,14 +34,18 @@ function findNotFoundRoute(route, path, languages) {
   return candidates.find((candidate) => route.get(candidate));
 }
 
+function getLanguages(config, theme) {
+  const i18n = theme.i18n || {};
+  const configuredLanguages = Array.isArray(i18n.languages) ? i18n.languages : [];
+  const siteLanguages = Array.isArray(config.language) ? config.language : (config.language ? [config.language] : []);
+  return Array.from(new Set([...configuredLanguages, ...siteLanguages, i18n.default_lang].filter(Boolean)));
+}
+
 hexo.extend.filter.register('server_middleware', function midnightNotFoundServerFallback(app) {
   const { config, route } = this;
   const root = normalizeRoot(config.root || '/');
   const theme = (this.theme && (this.theme.config || this.theme)) || {};
-  const i18n = theme.i18n || {};
-  const configuredLanguages = Array.isArray(i18n.languages) ? i18n.languages : [];
-  const siteLanguages = Array.isArray(config.language) ? config.language : (config.language ? [config.language] : []);
-  const languages = Array.from(new Set([...configuredLanguages, ...siteLanguages, i18n.default_lang].filter(Boolean)));
+  const languages = getLanguages(config, theme);
 
   app.use(root, (req, res, next) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') return next();

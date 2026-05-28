@@ -1,0 +1,21 @@
+<%
+const skeletonI18n = (theme && theme.i18n) || {};
+const skeletonLanguages = Array.isArray(skeletonI18n.languages) ? skeletonI18n.languages.filter(Boolean) : [];
+const skeletonPath = String((page && page.path) || '').replace(/^\/+/, '').replace(/index\.html?$/i, '');
+const showLanguageSkeleton = skeletonLanguages.length > 1 && skeletonPath === '';
+%>
+<% if (showLanguageSkeleton) { %>
+  <div class="language-redirect-skeleton" aria-hidden="true">
+    <div class="language-redirect-skeleton__bar"></div>
+    <div class="language-redirect-skeleton__hero">
+      <span></span>
+      <b></b>
+      <i></i>
+    </div>
+    <div class="language-redirect-skeleton__grid">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </div>
+<% } %>

@@ -283,23 +283,6 @@ function siteUrl(hexo, routePath) {
   return normalized ? `${base}/${normalized}` : `${base}/`;
 }
 
-function makeRedirectHtml(target) {
-  return [
-    '<!doctype html>',
-    '<html>',
-    '<head>',
-    '  <meta charset="utf-8">',
-    `  <meta http-equiv="refresh" content="0;url=${target}">`,
-    `  <link rel="canonical" href="${target}">`,
-    '  <title>Redirecting...</title>',
-    '</head>',
-    '<body>',
-    `  <p>Redirecting to <a href="${target}">${target}</a></p>`,
-    '</body>',
-    '</html>'
-  ].join('\n');
-}
-
 function xmlEscape(value) {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -587,10 +570,16 @@ hexo.extend.generator.register('midnight_source_i18n_pages', function midnightSo
     routes.push(...postRoutes);
   })).then(() => {
     if (defaultLanguage && languages.includes(defaultLanguage)) {
+      const posts = postsByLanguage.get(defaultLanguage) || [];
       routes.push({
         path: 'index.html',
-        layout: false,
-        data: makeRedirectHtml(`/${defaultLanguage}/`)
+        layout: ['index'],
+        data: {
+          title: this.config.title,
+          lang: defaultLanguage,
+          path: '',
+          posts: postsCollection(posts)
+        }
       });
     }
 
