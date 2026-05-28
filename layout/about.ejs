@@ -16,7 +16,24 @@ const contactRole = midnight_value(contact.role, midnight_text('labels.publisher
 const contactAvatar = contact.avatar || (theme.appearance && theme.appearance.logo) || '';
 const contactDescription = midnight_value(contact.description, '');
 const contactFooter = midnight_value(contact.footer, '');
-const contactLinks = Array.isArray(contact.links) ? contact.links.filter((item) => item && (item.url || item.href)) : [];
+const normalizeContactLink = (item) => {
+  const type = String(item.type || item.name || '').trim().toLowerCase();
+  const platformTypes = new Set(['wechat', 'weixin', 'email', 'mail', 'github', 'csdn']);
+  if (platformTypes.has(type)) return `type:${type === 'weixin' ? 'wechat' : type === 'mail' ? 'email' : type}`;
+  return String(item.url || item.href || item.image || item.qr || item.qrcode || type)
+    .trim()
+    .toLowerCase();
+};
+const contactLinkKeys = new Set();
+const contactLinks = Array.isArray(contact.links)
+  ? contact.links.filter((item) => {
+      if (!item || !(item.url || item.href || item.image || item.qr || item.qrcode)) return false;
+      const key = normalizeContactLink(item);
+      if (contactLinkKeys.has(key)) return false;
+      contactLinkKeys.add(key);
+      return true;
+    })
+  : [];
 const body = midnight_value(about.body, '');
 const contactInitial = Array.from(String(contactName).trim())[0] || authorInitial;
 const contactIcon = (type = '') => {
@@ -147,9 +164,16 @@ const contactIcon = (type = '') => {
                 const linkLabel = midnight_value(item.label, item.type || item.name || 'Link');
                 const linkType = item.type || item.name || '';
                 const linkUrl = item.url || item.href || '#';
+                const linkImage = item.image || item.qr || item.qrcode || '';
+                const linkClass = String(linkType || 'link').toLowerCase().replace(/[^a-z0-9_-]/g, '');
               %>
-                <a class="contact-link contact-link--<%= String(linkType || 'link').toLowerCase().replace(/[^a-z0-9_-]/g, '') %>" href="<%- linkUrl %>" aria-label="<%= linkLabel %>" title="<%= linkLabel %>"<% if (/^https?:\/\//i.test(linkUrl)) { %> target="_blank" rel="noopener noreferrer"<% } %>>
+                <a class="contact-link contact-link--<%= linkClass %><% if (linkImage) { %> contact-link--image<% } %>" href="<%- linkUrl %>" aria-label="<%= linkLabel %>" title="<%= linkLabel %>"<% if (/^https?:\/\//i.test(linkUrl)) { %> target="_blank" rel="noopener noreferrer"<% } %>>
                   <span class="contact-link__icon"><%- contactIcon(linkType) %></span>
+                  <% if (linkImage) { %>
+                    <span class="contact-link__bubble" role="presentation">
+                      <img src="<%- url_for(linkImage) %>" alt="">
+                    </span>
+                  <% } %>
                 </a>
               <% }) %>
             </div>
