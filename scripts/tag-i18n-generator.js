@@ -1,5 +1,13 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
+
+function hasLanguagePostDirs(hexo, languages) {
+  const sourceDir = hexo.source_dir || path.join(hexo.base_dir || process.cwd(), 'source');
+  return languages.some((lang) => fs.existsSync(path.join(sourceDir, lang, '_posts')));
+}
+
 function themeConfig(hexo) {
   return (hexo.theme && (hexo.theme.config || hexo.theme)) || {};
 }
@@ -55,6 +63,7 @@ hexo.extend.generator.register('midnight_i18n_tags', function midnightI18nTags(l
   }
 
   const posts = locals.posts && locals.posts.toArray ? locals.posts.toArray() : [];
+  if (!posts.length && hasLanguagePostDirs(this, languages)) return [];
   const pages = [];
 
   // Per-language tag index page (/<lang>/tags/index.html)

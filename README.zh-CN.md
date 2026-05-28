@@ -111,6 +111,8 @@ translations:
 
 文章页不会再只替换语言前缀来生成不存在的翻译地址，避免读者切换语言时进入 404。
 
+Midnight 也兼容 `source/zh-CN/_posts/*.md`、`source/en/_posts/*.md` 这种按语言分目录的文章结构。执行 `hexo generate` 时，如果检测到这些目录，主题会直接生成语言首页、归档、标签、分类、文章、feed 和 sitemap 路由，不再需要在站点项目里额外写 i18n generator。
+
 ## 导航
 
 Navbar 顺序为：`首页 -> 自定义按钮 -> 归档 -> 关于`。自定义按钮写在 `nav.items`：

@@ -48,6 +48,7 @@ const required = [
   'scripts/check-excerpt-helper.js',
   'scripts/home-i18n-generator.js',
   'scripts/inner-page-i18n-generator.js',
+  'scripts/source-i18n-generator.js',
   'scripts/tag-i18n-generator.js',
   'scripts/not-found-generator.js',
   'scripts/not-found-server-fallback.js',

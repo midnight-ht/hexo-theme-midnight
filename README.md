@@ -111,6 +111,8 @@ translations:
 
 On post pages, missing translations are not fabricated by replacing only the language prefix. This avoids sending readers to non-existent localized slugs.
 
+Midnight also supports language-scoped source posts such as `source/zh-CN/_posts/*.md` and `source/en/_posts/*.md` during `hexo generate`. When those folders exist, the theme generates language home, archive, tag, category, post, feed, and sitemap routes from them so the site does not need a separate project-level i18n generator.
+
 ## Navigation
 
 Navbar order is `Home -> custom items -> Archives -> About`. Add custom buttons through `nav.items`:

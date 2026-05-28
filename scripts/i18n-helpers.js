@@ -262,8 +262,11 @@ function getSupportedLanguages(helper) {
   const cfg = themeConfig.i18n || {};
   const language = helper.config.language;
   const configured = Array.isArray(cfg.languages) ? cfg.languages : [];
+  const siteI18n = Array.isArray(helper.config.i18n)
+    ? helper.config.i18n.map((item) => item && item.language).filter(Boolean)
+    : [];
   const siteLanguages = Array.isArray(language) ? language : (language ? [language] : []);
-  return Array.from(new Set([...configured, ...siteLanguages, cfg.default_lang].filter(Boolean)));
+  return Array.from(new Set([...configured, ...siteI18n, ...siteLanguages, cfg.default_lang].filter(Boolean)));
 }
 
 function getRouteLanguage(helper, page) {
@@ -486,7 +489,7 @@ function resolveLocalizedValue(helper, value, fallback) {
   }
 
   if (typeof value === 'string' && value) {
-    const translated = helper.__(value);
+    const translated = safeTranslate(helper, value);
     return translated && translated !== value ? translated : value;
   }
 
@@ -495,11 +498,22 @@ function resolveLocalizedValue(helper, value, fallback) {
   }
 
   if (typeof fallback === 'string' && fallback) {
-    const translated = helper.__(fallback);
+    const translated = safeTranslate(helper, fallback);
     return translated && translated !== fallback ? translated : fallback;
   }
 
   return fallback || '';
+}
+
+function safeTranslate(helper, key) {
+  try {
+    return helper.__(key);
+  } catch (error) {
+    if (error && /\[sprintf\]/.test(String(error.message || error))) {
+      return key;
+    }
+    throw error;
+  }
 }
 
 function decodeHtmlEntities(value) {
