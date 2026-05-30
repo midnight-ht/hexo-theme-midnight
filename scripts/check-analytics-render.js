@@ -21,6 +21,8 @@ function fail(message) {
   'analytics.gtag',
   'analytics.cnzz',
   'analytics.woyaola',
+  'analytics.adsense_client',
+  'pagead2.googlesyndication.com/pagead/js/adsbygoogle.js',
   'busuanzi.pure.mini.js'
 ].forEach((needle) => {
   if (!template.includes(needle)) fail(`Analytics partial is missing ${needle}`);

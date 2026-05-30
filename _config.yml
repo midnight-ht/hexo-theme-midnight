@@ -137,6 +137,7 @@ web_analytics:
   gtag: ""
   cnzz: ""
   woyaola: ""
+  adsense_client: ""
   busuanzi:
     enabled: false
     enable: false

@@ -5,7 +5,12 @@ const footerStats = (theme.footer && theme.footer.statistics) || {};
 const statsEnabled = footerStats.enabled === true || footerStats.enable === true;
 const busuanziCfg = analytics.busuanzi || {};
 const busuanziEnabled = statsEnabled && (footerStats.source || 'busuanzi') === 'busuanzi' || busuanziCfg.enabled === true || busuanziCfg.enable === true;
+const adsenseClient = String(analytics.adsense_client || analytics.adsenseClient || '').trim();
 %>
+
+<% if (adsenseClient) { %>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<%- adsenseClient %>" crossorigin="anonymous"></script>
+<% } %>
 
 <% if (analyticsEnabled && analytics.baidu) { %>
   <script>
