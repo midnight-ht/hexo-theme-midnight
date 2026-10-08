@@ -57,6 +57,10 @@
   }
   %>
   <title><%= pageTitle %></title>
+  <% midnight_meta_tags(page).forEach((tag) => { %>
+    <% if (tag.name) { %><meta name="<%= tag.name %>" content="<%= tag.content %>"><% } %>
+    <% if (tag.property) { %><meta property="<%= tag.property %>" content="<%= tag.content %>"><% } %>
+  <% }) %>
   <% if (shouldProbeLanguage) { %>
     <script>
       (function () {
@@ -139,15 +143,6 @@
   <% if (seoCfg.robots !== false) { %>
     <meta name="robots" content="<%= page.noindex || /(?:^|\/)404(?:\.html|\/|$)/.test(String(page.path || '')) ? 'noindex,follow' : (seoCfg.robots || 'index,follow,max-image-preview:large') %>">
   <% } %>
-  <% if (seoCfg.baidu_site_verification) { %>
-    <meta name="baidu-site-verification" content="<%= seoCfg.baidu_site_verification %>">
-  <% } %>
-  <% if (seoCfg.google_site_verification) { %>
-    <meta name="google-site-verification" content="<%= seoCfg.google_site_verification %>">
-  <% } %>
-  <% if (seoCfg.bing_site_verification) { %>
-    <meta name="msvalidate.01" content="<%= seoCfg.bing_site_verification %>">
-  <% } %>
   <link rel="canonical" href="<%= midnight_canonical_url(page) %>">
   <% const languageLinks = midnight_language_links(page); %>
   <% const defaultLanguageLink = languageLinks.find(item => item.lang === (headI18n.default_lang || headLanguages[0])); %>
@@ -216,6 +211,10 @@
   <% const assetVersion = theme.asset_version || theme.version || '0.3.0'; %>
   <link rel="stylesheet" href="<%- url_for('/css/main.css') %>?v=<%- assetVersion %>">
   <link rel="stylesheet" href="<%- url_for('/css/editorial.css') %>?v=<%- assetVersion %>">
+  <% const headComments = theme.comments || {}; const headWaline = headComments.waline || {}; %>
+  <% if ((headComments.enabled === true || headComments.enable === true) && page.comments !== false && (headComments.provider || headComments.type) === 'waline' && /^https?:\/\/[^\s<>"']+$/i.test(String(headWaline.server_url || headWaline.serverURL || '').trim())) { %>
+    <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css">
+  <% } %>
   <% const safeAccent = value => /^#[0-9a-f]{6}$/i.test(String(value || '')) ? value : ''; %>
   <% if (safeAccent(appearanceCfg.accent_light) || safeAccent(appearanceCfg.accent_dark)) { %>
     <style>

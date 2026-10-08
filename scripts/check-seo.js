@@ -30,6 +30,9 @@ const articleByLanguage = new Map();
 const archives = [];
 for (const file of walk(root)) {
   const document = new JSDOM(fs.readFileSync(file, 'utf8')).window.document;
+  // Root verification documents are emitted verbatim, without the theme layout.
+  const standalone = path.dirname(file) === root && !/^(index|404)\.html$/i.test(path.basename(file));
+  if (standalone && !document.querySelector('main, #midnight-seo-jsonld, link[href*="main.css"]')) continue;
   assert.equal(document.querySelectorAll('main').length, 1, `${file}: exactly one main landmark`);
   assert(!document.querySelector('link[hreflang="default"]'), `${file}: invalid language`);
   if (/[/\\]archives[/\\]index.html$/.test(file)) archives.push({ file, document });

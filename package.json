@@ -26,6 +26,7 @@
     "layout/",
     "scripts/",
     "source/",
+    "docs/",
     "README.md",
     "README.zh-CN.md",
     "LICENSE"
@@ -44,6 +45,7 @@
     "lint:metrics": "node scripts/check-metrics.js",
     "lint:excerpt": "node scripts/check-excerpt-helper.js",
     "lint:seo": "node scripts/check-seo.js",
+    "lint:webmaster": "node scripts/check-webmaster.js",
     "lint:home": "node scripts/check-home.js"
   },
   "dependencies": {

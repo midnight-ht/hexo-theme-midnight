@@ -6,10 +6,16 @@ const statsEnabled = footerStats.enabled === true || footerStats.enable === true
 const busuanziCfg = analytics.busuanzi || {};
 const busuanziEnabled = statsEnabled && (footerStats.source || 'busuanzi') === 'busuanzi' || busuanziCfg.enabled === true || busuanziCfg.enable === true;
 const adsenseClient = String(analytics.adsense_client || analytics.adsenseClient || '').trim();
+const analyticsJson = value => JSON.stringify(String(value)).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+const googleTag = String(analytics.gtag || (/^G-[A-Z0-9]+$/i.test(String(analytics.google || '')) ? analytics.google : '')).trim();
+const umami = analytics.umami || {};
+const umamiScript = String(umami.script_url || '').trim();
+const umamiReady = /^https?:\/\/[^\s<>"']+$/i.test(umamiScript) && String(umami.website_id || '').trim();
+const clarityId = String(analytics.clarity || '').trim();
 %>
 
 <% if (adsenseClient) { %>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<%- adsenseClient %>" crossorigin="anonymous"></script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<%= encodeURIComponent(adsenseClient) %>" crossorigin="anonymous"></script>
 <% } %>
 
 <% if (analyticsEnabled && analytics.baidu) { %>
@@ -17,41 +23,55 @@ const adsenseClient = String(analytics.adsense_client || analytics.adsenseClient
     var _hmt = _hmt || [];
     (function () {
       var hm = document.createElement("script");
-      hm.src = "https://hm.baidu.com/hm.js?<%- analytics.baidu %>";
+      hm.src = <%- analyticsJson('https://hm.baidu.com/hm.js?' + encodeURIComponent(analytics.baidu)) %>;
       var s = document.getElementsByTagName("script")[0];
       s.parentNode.insertBefore(hm, s);
     })();
   </script>
 <% } %>
 
-<% if (analyticsEnabled && analytics.google) { %>
+<% if (analyticsEnabled && /^UA-\d+-\d+$/i.test(String(analytics.google || ''))) { %>
   <script async src="https://www.google-analytics.com/analytics.js"></script>
   <script>
     window.ga = window.ga || function () { (ga.q = ga.q || []).push(arguments); };
     ga.l = +new Date();
-    ga('create', '<%- analytics.google %>', 'auto');
+    ga('create', <%- analyticsJson(analytics.google) %>, 'auto');
     ga('send', 'pageview');
   </script>
 <% } %>
 
-<% if (analyticsEnabled && analytics.gtag) { %>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=<%- analytics.gtag %>"></script>
+<% if (analyticsEnabled && googleTag) { %>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=<%= encodeURIComponent(googleTag) %>"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', '<%- analytics.gtag %>');
+    gtag('config', <%- analyticsJson(googleTag) %>);
   </script>
 <% } %>
 
 <% if (analyticsEnabled && analytics.cnzz) { %>
-  <script async src="https://s9.cnzz.com/z_stat.php?id=<%- analytics.cnzz %>&web_id=<%- analytics.cnzz %>"></script>
+  <script async src="https://s9.cnzz.com/z_stat.php?id=<%= encodeURIComponent(analytics.cnzz) %>&web_id=<%= encodeURIComponent(analytics.cnzz) %>"></script>
 <% } %>
 
 <% if (analyticsEnabled && analytics.woyaola) { %>
-  <script async src="https://js.users.51.la/<%- analytics.woyaola %>.js"></script>
+  <script async src="https://js.users.51.la/<%= encodeURIComponent(analytics.woyaola) %>.js"></script>
 <% } %>
 
 <% if (busuanziEnabled) { %>
-  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<% } %>
+
+<% if (analyticsEnabled && umamiReady) { %>
+  <script defer src="<%= umamiScript %>" data-website-id="<%= String(umami.website_id).trim() %>"<% if (umami.domains) { %> data-domains="<%= umami.domains %>"<% } %>></script>
+<% } %>
+
+<% if (analyticsEnabled && /^[a-z0-9]+$/i.test(clarityId)) { %>
+  <script>
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", <%- analyticsJson(clarityId) %>);
+  </script>
 <% } %>

@@ -3,47 +3,63 @@ const comments = theme.comments || {};
 const commentsEnabled = (comments.enabled === true || comments.enable === true) && page.comments !== false;
 const commentsProvider = comments.provider || comments.type || '';
 const walineConfig = comments.waline || {};
-const walineServerUrl = walineConfig.server_url || walineConfig.serverURL || '';
+const walineServerUrl = String(walineConfig.server_url || walineConfig.serverURL || '').trim();
 const utterancesConfig = comments.utterances || {};
+const giscusConfig = comments.giscus || {};
+const safeServer = /^https?:\/\/[^\s<>"']+$/i.test(walineServerUrl);
+const repoValid = value => /^[\w.-]+\/[\w.-]+$/.test(String(value || ''));
+const commentsReady = (commentsProvider === 'giscus' && repoValid(giscusConfig.repo) && [giscusConfig.repo_id, giscusConfig.category, giscusConfig.category_id].every(value => typeof value === 'string' && value.trim())) || (commentsProvider === 'waline' && safeServer) || (commentsProvider === 'utterances' && repoValid(utterancesConfig.repo));
+const commentJson = value => JSON.stringify(value).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+const commentLang = typeof midnight_page_lang === 'function' ? midnight_page_lang(page) : 'zh-CN';
+const commentTitle = page.comments_title || (typeof midnight_value === 'function' ? midnight_value(comments.title, '') : '') || __('comments');
+const autoTheme = commentsProvider === 'giscus' ? ['auto', 'preferred_color_scheme', ''].includes(giscusConfig.theme || '') : ['auto', ''].includes(utterancesConfig.theme || '');
+const commentLight = commentsProvider === 'giscus' ? (giscusConfig.theme_light || 'light') : (utterancesConfig.theme_light || 'github-light');
+const commentDark = commentsProvider === 'giscus' ? (giscusConfig.theme_dark || 'dark') : (utterancesConfig.theme_dark || 'github-dark');
 %>
-<% const commentsReady = (commentsProvider === 'giscus' && comments.giscus && [comments.giscus.repo, comments.giscus.repo_id, comments.giscus.category, comments.giscus.category_id].every(value => typeof value === 'string' && value.trim())) || (commentsProvider === 'waline' && String(walineServerUrl).trim()) || (commentsProvider === 'utterances' && String(utterancesConfig.repo || '').trim()); %>
 <% if (commentsEnabled && commentsReady) { %>
-  <section class="comments" aria-label="<%= __('comments') %>">
-    <h2><%= __('comments') %></h2>
-    <% if (commentsProvider === 'giscus' && comments.giscus && comments.giscus.repo && comments.giscus.repo_id) { %>
+  <section class="comments" aria-label="<%= commentTitle %>" data-comments-provider="<%= commentsProvider %>" data-comments-auto-theme="<%= autoTheme %>" data-comments-light="<%= commentLight %>" data-comments-dark="<%= commentDark %>">
+    <h2><%= commentTitle %></h2>
+    <% if (commentsProvider === 'giscus') { %>
       <script src="https://giscus.app/client.js"
-        data-repo="<%- comments.giscus.repo %>"
-        data-repo-id="<%- comments.giscus.repo_id %>"
-        data-category="<%- comments.giscus.category %>"
-        data-category-id="<%- comments.giscus.category_id %>"
-        data-mapping="<%- comments.giscus.mapping || 'pathname' %>"
-        data-reactions-enabled="<%- comments.giscus.reactions_enabled || '1' %>"
-        data-emit-metadata="<%- comments.giscus.emit_metadata || '0' %>"
-        data-theme="<%- comments.giscus.theme || 'preferred_color_scheme' %>"
+        data-repo="<%= giscusConfig.repo %>"
+        data-repo-id="<%= giscusConfig.repo_id %>"
+        data-category="<%= giscusConfig.category %>"
+        data-category-id="<%= giscusConfig.category_id %>"
+        data-mapping="<%= page.comment_id ? 'specific' : (giscusConfig.mapping || 'pathname') %>"
+        <% if (page.comment_id) { %>data-term="<%= page.comment_id %>"<% } %>
+        data-reactions-enabled="<%= giscusConfig.reactions_enabled || '1' %>"
+        data-emit-metadata="<%= giscusConfig.emit_metadata || '0' %>"
+        data-lang="<%= giscusConfig.lang || (commentLang === 'zh-CN' ? 'zh-CN' : commentLang) %>"
+        data-theme="<%= autoTheme ? commentLight : giscusConfig.theme %>"
         crossorigin="anonymous"
         async>
       </script>
-    <% } else if (commentsProvider === 'waline' && walineServerUrl) { %>
+    <% } else if (commentsProvider === 'waline') { %>
       <div id="waline"></div>
       <script type="module">
-        import { init } from 'https://unpkg.com/@waline/client/dist/waline.js';
+        import { init } from 'https://unpkg.com/@waline/client@v3/dist/waline.js';
         init({
           el: '#waline',
-          serverURL: '<%- walineServerUrl %>',
-          <% if (walineConfig.lang) { %>lang: '<%- walineConfig.lang %>',<% } %>
-          <% if (walineConfig.placeholder) { %>placeholder: '<%- walineConfig.placeholder %>',<% } %>
-          pageSize: <%- Number(walineConfig.page_size || walineConfig.pageSize || 10) %>
+          serverURL: <%- commentJson(walineServerUrl) %>,
+          <% if (page.comment_id) { %>path: <%- commentJson(String(page.comment_id)) %>,<% } %>
+          lang: <%- commentJson(walineConfig.lang || commentLang) %>,
+          dark: 'html[data-theme="dark"]',
+          <% if (walineConfig.placeholder) { %>locale: { placeholder: <%- commentJson(walineConfig.placeholder) %> },<% } %>
+          pageSize: <%= Math.max(1, Math.min(100, Math.floor(Number(walineConfig.page_size || walineConfig.pageSize) || 10))) %>
         });
       </script>
-    <% } else if (commentsProvider === 'utterances' && utterancesConfig.repo) { %>
+    <% } else if (commentsProvider === 'utterances') { %>
       <script src="https://utteranc.es/client.js"
-        repo="<%- utterancesConfig.repo %>"
-        issue-term="<%- utterancesConfig.issue_term || utterancesConfig.issueTerm || 'pathname' %>"
-        <% if (utterancesConfig.label) { %>label="<%- utterancesConfig.label %>"<% } %>
-        theme="<%- utterancesConfig.theme || 'github-dark' %>"
-        crossorigin="<%- utterancesConfig.crossorigin || 'anonymous' %>"
+        repo="<%= utterancesConfig.repo %>"
+        issue-term="<%= page.comment_id || utterancesConfig.issue_term || utterancesConfig.issueTerm || 'pathname' %>"
+        <% if (utterancesConfig.label) { %>label="<%= utterancesConfig.label %>"<% } %>
+        theme="<%= autoTheme ? commentLight : utterancesConfig.theme %>"
+        crossorigin="anonymous"
         async>
       </script>
+    <% } %>
+    <% if (commentsProvider !== 'waline' && autoTheme) { %>
+      <script src="<%= typeof url_for === 'function' ? url_for('/js/comments.js') : '/js/comments.js' %>?v=<%= theme.asset_version || theme.version || '0.3.0' %>" defer></script>
     <% } %>
   </section>
 <% } %>

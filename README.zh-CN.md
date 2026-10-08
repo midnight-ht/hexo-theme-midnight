@@ -2,6 +2,8 @@
 
 [English README](README.md)
 
+[站长验证、统计与留言接入指南](docs/INTEGRATIONS.zh-CN.md) · [配置模板](docs/examples/integrations.yml)
+
 Midnight 是一个面向技术写作、产品笔记、AI 主题博客和多语言发布的现代 Hexo 主题。它提供媒体式首页、文章模板、语言感知路由、可配置评论、SEO 元信息，以及可选的浏览器端模型会话面板。
 
 ## 核心能力
@@ -247,4 +249,176 @@ GEO 的实现遵循 [Google AI 搜索指南](https://developers.google.com/searc
 
 验证：`npm run lint:seo` 检查生成页面中的语言关联、canonical、唯一主区域、标题与 JSON-LD 一致性、来源可见性和脚本转义；可追加站点输出目录参数验证实际部署产物。
 
+
+## 自定义 meta 与站长平台验证
+
+在站点根目录 `_config.midnight.yml` 中配置；不要直接修改安装包。空值不会输出标签。各平台字段填写平台提供的 `content` 验证码，不是整段 HTML；可以使用字符串数组支持多个账号。
+
+```yaml
+seo:
+  google_site_verification: "平台提供的验证码"
+  baidu_site_verification: ""
+  bing_site_verification: ""
+  shenma_site_verification: ""
+  sogou_site_verification: ""
+  so_site_verification: ""
+  yandex_site_verification: ""
+  pinterest_site_verification: ""
+  meta:
+    - name: referrer
+      content: strict-origin-when-cross-origin
+    - property: fb:app_id
+      content: "你的应用 ID"
+  verification_files: []
+```
+
+| 平台 | 配置字段（`seo.` 下） | 输出的 meta name |
+| --- | --- | --- |
+| Google Search Console | google_site_verification | google-site-verification |
+| 百度搜索资源平台 | baidu_site_verification | baidu-site-verification |
+| Bing Webmaster Tools | bing_site_verification | msvalidate.01 |
+| 神马站长平台 | shenma_site_verification | shenma-site-verification |
+| 搜狗资源平台 | sogou_site_verification | sogou-site-verification |
+| 360 站长平台 | so_site_verification | verify-v1 |
+| Yandex Webmaster | yandex_site_verification | yandex-verification |
+| Pinterest | pinterest_site_verification | p:domain_verify |
+
+其他平台可将平台给出的 `name` 或 `property` 与 `content` 写入 `seo.meta`。每项只填写一种属性，内容会进行 HTML 转义，不支持直接粘贴 HTML、脚本或 `http-equiv`。相同属性与名称只输出一次，页面 front matter 的 `seo.meta` 覆盖站点同名配置；`content: false` 删除继承的自定义标签。平台验证标签始终属于站点，不受页面覆盖影响。
+
+```yaml
+# 文章或页面 front matter
+seo:
+  meta:
+    - name: referrer
+      content: no-referrer
+    - property: fb:app_id
+      content: false
+```
+
+`description`、`keywords`、`robots`、`viewport`、`theme-color` 和主题已有的 Open Graph/Twitter 标签由专用配置生成，放入 `seo.meta` 会被忽略以避免冲突。描述、关键词使用现有页面字段和 `seo.description` / `seo.keywords`；页面禁索引使用 `noindex: true`。`googlebot` 等其他自定义指令可通过 `seo.meta` 添加。
+
+需要文件验证的平台可以配置以下内容。文件名、文件内容必须逐字复制平台提供的值；示例仅展示格式，不能用于真实验证。
+
+```yaml
+seo:
+  verification_files:
+    - path: googleYOUR_TOKEN.html
+      content: "google-site-verification: googleYOUR_TOKEN.html"
+    - path: BingSiteAuth.xml
+      content: |
+        <?xml version="1.0"?>
+        <users><user>YOUR_TOKEN</user></users>
+```
+
+验证文件直接生成在输出目录根部，不经过主题模板或 Markdown 渲染。仅允许根目录 `.html` / `.txt` / `.xml` 文件；无效路径、重复文件、已有页面/资源冲突和首页、404、robots、sitemap、feed 等保留文件名会使构建失败。部署在子目录的站点需核对平台要求的验证 URL。也可把原始文件放入 Hexo `source/` 并配置 `skip_render`，两种方式不要使用同一文件名。
+
+部署后检查首页源代码中的标签，以及验证文件 URL 的内容与 HTTP 200 状态，再到平台完成验证。DNS TXT 验证需在域名服务商操作；配置主题不代表平台已验证、已提交或已收录。验证通过后仍应保留验证凭证。站点地图继续由现有 sitemap 配置生成，并在各平台提交实际 sitemap URL。
+
+统计脚本继续使用 `web_analytics`；这里的验证字段不会开启统计或自动提交 URL。百度推送、IndexNow 等需要服务端令牌的提交操作应放在部署流程中，不能把提交密钥放入公开的 meta 或前端脚本。
+
+核对参考：[Google 验证说明](https://support.google.com/webmasters/answer/9008080?hl=zh-Hans)、[Bing 验证说明](https://learn.microsoft.com/en-us/bingwebmaster/verifying-wordpress)、[搜狗验证说明](https://zhanzhang.sogou.com/index.php/help/siteVerify)、[Yandex 验证说明](https://yandex.ru/support/webmaster/en/service/quick-start)。其他平台请以账号后台提供的最新验证代码为准。
+
+运行 `npm run lint:webmaster` 检查多账号、页面覆盖、标签转义、验证文件与冲突处理。
+
 首页精选只展示明确设置 `editor_pick: true` 的当前语言文章，按 `editor_pick_order` 升序、日期降序排列，最多两篇。没有配置时整个精选区隐藏；精选文章不会重复出现在首页最新列表中，完整文章仍可在归档中找到。
+
+## 接入统计与留言
+
+在站点 `_config.midnight.yml` 中选择需要的服务，默认均关闭。配置缺少必要参数时不会输出组件或追踪脚本。
+
+### 访问统计
+
+```yaml
+web_analytics:
+  enabled: true
+  gtag: "G-你的GA4测量ID"
+  baidu: "" # 百度统计代码 hm.js? 后的 ID
+  clarity: "" # Microsoft Clarity 项目 ID
+  umami:
+    script_url: "" # 复制 Umami 后台提供的完整脚本 URL
+    website_id: ""
+    domains: "" # 可选，例如 zyweb.vip,www.zyweb.vip
+```
+
+可单独启用一种或同时配置多种服务。GA4 使用 `gtag`；`google` 填入 `G-...` 也会使用 GA4，和同值 `gtag` 不重复加载。旧 `UA-...` 配置保留兼容渲染，但 Universal Analytics 已停止处理新数据，请迁移 GA4。已有百度、CNZZ、51.LA 接入保持兼容；51.LA 的 `woyaola` 是原有脚本路径型配置，不等同于新版 SDK 的其他参数。
+
+PV / UV 展示可另外启用不蒜子：
+
+```yaml
+footer:
+  statistics:
+    enabled: true
+    source: busuanzi
+```
+
+统计后台报表与页面显示的文章阅读数是两类功能。GA4、Umami、Clarity 不会自动向文章填充阅读数；文章阅读/评论数继续使用 `article_statistics` 的真实接口。接口缺失或请求失败时隐藏数字，真实的 0 会显示。不要把报表查询密钥放入前端配置。
+
+### 文章评论与独立留言页
+
+选择一种留言服务：
+
+| 服务 | 需要的配置 | 使用方式 |
+| --- | --- | --- |
+| Giscus | GitHub 公共仓库、repo_id、分类与 category_id | 通过 GitHub 登录，留言存入 Discussions |
+| Waline | 已部署的 server_url | 可由服务端配置访客留言、登录及审核 |
+| Utterances | 已安装对应 GitHub App 的公共仓库 | 通过 GitHub 登录，留言存入 Issues |
+
+Giscus 的完整配置可从 [giscus.app](https://giscus.app/zh-CN) 获取；仓库需开启 Discussions 并安装 Giscus App。
+
+```yaml
+comments:
+  enabled: true
+  provider: giscus
+  giscus:
+    repo: "owner/repo"
+    repo_id: "后台生成的仓库 ID"
+    category: "Announcements"
+    category_id: "后台生成的分类 ID"
+    mapping: pathname
+    theme: auto
+```
+
+或者使用 Waline：
+
+```yaml
+comments:
+  enabled: true
+  provider: waline
+  waline:
+    server_url: "https://你的Waline服务域名"
+    lang: "" # 跟随页面语言
+    placeholder: "欢迎交流文章中的问题与经验"
+    page_size: 10
+```
+
+或者使用 Utterances（需安装 [Utterances App](https://github.com/apps/utterances)）：
+
+```yaml
+comments:
+  enabled: true
+  provider: utterances
+  utterances:
+    repo: "owner/repo"
+    issue_term: pathname
+    theme: auto
+```
+
+Giscus、Utterances 的 `theme: auto` 跟随站点的明暗切换；可通过 `theme_light` / `theme_dark` 指定各自主题，或设置固定 `theme`。Waline 加载匹配的 v3 样式并跟随站点明暗和皮肤色。Giscus、Waline 默认跟随页面语言，`lang` 可覆盖。
+
+独立留言板直接使用普通 Hexo 页面，无需新增服务。在 `source/guestbook/index.md` 中写入以下内容（多语言站点可在相应语言页面目录下创建）：
+
+```markdown
+---
+title: 留言板
+layout: page
+comments: true
+comments_title: 留言
+---
+欢迎留下问题、建议或交流想法。
+```
+
+将实际生成的留言板路径加入导航即可。页面 `comments: false` 关闭该页留言；全站仍需打开 `comments.enabled` 并配置服务。可选 `comment_id: stable-topic-id` 为页面指定长期不变的留言标识；不同语言使用相同 ID 将共享同一讨论，请只在确实需要时设置。站点标题或路径变更前应规划迁移，避免评论分散。
+
+接入验收：部署后检查统计请求与后台实时事件；在文章或留言板实际提交一条留言，刷新后确认仍存在，最后在服务后台检查保存与审核。主题本地测试使用服务替身，不代表真实账号已接通。
+
+参考：[GA4](https://developers.google.com/analytics/devguides/collection/ga4/tag-options)、[Umami](https://docs.umami.is/docs/tracker-configuration)、[Clarity](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-setup)、[Waline](https://waline.js.org/guide/get-started/)、[Utterances](https://utteranc.es/)。

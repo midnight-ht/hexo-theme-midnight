@@ -2,6 +2,8 @@
 
 [中文自述](README.zh-CN.md)
 
+[Webmaster, analytics and comments guide](docs/INTEGRATIONS.md) · [Configuration template](docs/examples/integrations.yml)
+
 Midnight is a modern Hexo theme for technology writing, product notes, AI-focused blogs, and multilingual publishing. It provides an editorial homepage, article templates, language-aware routes, configurable comments, SEO metadata, and an optional browser-side model session panel.
 
 ## Features
@@ -218,4 +220,104 @@ GEO follows [Google's AI features guidance](https://developers.google.com/search
 
 Run `npm run lint:seo` to validate generated canonical/language metadata, main landmarks, article titles, JSON-LD, visible citations and script escaping. Pass a public output directory to `node scripts/check-seo.js` to check a real site's build.
 
+
+## Custom meta and webmaster verification
+
+Configure the site's `_config.midnight.yml`. Empty values produce no tags. Verification fields accept the platform's `content` token (not HTML), or an array of tokens for multiple owners.
+
+```yaml
+seo:
+  google_site_verification: "your-token"
+  baidu_site_verification: ""
+  bing_site_verification: ""
+  shenma_site_verification: ""
+  sogou_site_verification: ""
+  so_site_verification: ""
+  yandex_site_verification: ""
+  pinterest_site_verification: ""
+  meta:
+    - name: referrer
+      content: strict-origin-when-cross-origin
+    - property: fb:app_id
+      content: "your-app-id"
+  verification_files: []
+```
+
+The verification names are respectively `google-site-verification`, `baidu-site-verification`, `msvalidate.01`, `shenma-site-verification`, `sogou-site-verification`, `verify-v1`, `yandex-verification`, and `p:domain_verify`. Use `seo.meta` for additional platforms. Each custom entry accepts exactly one of `name` or `property`, plus `content`; values are HTML-escaped. Raw HTML, scripts and `http-equiv` are unsupported. Check each platform's current instructions when obtaining tokens.
+
+Page front matter `seo.meta` overrides matching site custom entries; `content: false` removes an inherited custom tag. Site ownership tokens cannot be overridden by a page. Built-in description, keywords, robots, viewport, theme-color and existing Open Graph/Twitter fields are ignored in the custom list to prevent duplicates. Use their dedicated options and page `noindex: true` instead.
+
+For file verification, copy the exact platform filename and contents:
+
+```yaml
+seo:
+  verification_files:
+    - path: googleYOUR_TOKEN.html
+      content: "google-site-verification: googleYOUR_TOKEN.html"
+    - path: BingSiteAuth.xml
+      content: |
+        <?xml version="1.0"?>
+        <users><user>YOUR_TOKEN</user></users>
+```
+
+These are format examples, not valid credentials. Files are emitted verbatim at the output root, without layout or Markdown processing. Only root-level `.html`, `.txt` and `.xml` filenames are accepted. Invalid paths, duplicate filenames, existing page/asset collisions and reserved index/404/robots/sitemap/feed names fail the build. For subdirectory hosting, check the platform's required verification URL. Alternatively, put original files in Hexo `source/` with `skip_render`; do not configure the same filename both ways.
+
+After deploying, inspect the homepage source and confirm verification file contents and HTTP 200, then complete verification on the platform. DNS TXT verification belongs in your DNS provider. Configuration alone does not verify accounts, submit URLs or guarantee indexing. Keep ownership credentials after verification and submit the actual sitemap URL through the platforms. Analytics stays in `web_analytics`. Server-side submission credentials for Baidu push or IndexNow belong in the deployment workflow, never in public meta or browser scripts.
+
+References: [Google](https://support.google.com/webmasters/answer/9008080?hl=en), [Bing](https://learn.microsoft.com/en-us/bingwebmaster/verifying-wordpress), [Sogou](https://zhanzhang.sogou.com/index.php/help/siteVerify), [Yandex](https://yandex.ru/support/webmaster/en/service/quick-start). Run `npm run lint:webmaster` to check optional tokens, multiple owners, overrides, escaping and verification file validation.
+
 Homepage picks show only current-language posts explicitly marked `editor_pick: true`, ordered by `editor_pick_order` ascending then date descending, with a maximum of two. With no picks, the entire section is hidden. Selected posts are excluded from the latest list; archives retain every post.
+
+## Analytics and comments / guestbook
+
+Configure the site's `_config.midnight.yml`. Integrations are disabled by default; incomplete settings do not emit a widget or tracker.
+
+```yaml
+web_analytics:
+  enabled: true
+  gtag: "G-YOUR_GA4_ID"
+  baidu: ""
+  clarity: "" # Microsoft Clarity project ID
+  umami:
+    script_url: "" # Exact tracker URL from your dashboard
+    website_id: ""
+    domains: "" # Optional comma-separated allowed hostnames
+comments:
+  enabled: true
+  provider: waline
+  waline:
+    server_url: "https://your-waline-service.example.com"
+    lang: "" # Follow the page language
+    placeholder: "Share your questions or experience"
+    page_size: 10
+```
+
+Choose individual analytics services as needed. GA4 uses `gtag`; a `G-...` ID in `google` also uses GA4 and is not loaded twice when both fields match. Legacy `UA-...` rendering is retained for compatibility, but Universal Analytics no longer processes new data; migrate to GA4. Existing Baidu, CNZZ and legacy 51.LA script-path settings remain available. Footer PV/UV can be enabled separately with `footer.statistics.enabled: true` and `source: busuanzi`.
+
+Analytics dashboards do not automatically supply article counters. Article reads/comments still use real `article_statistics` endpoints; unavailable values stay hidden and a genuine zero is shown. Do not expose reporting secrets in browser configuration.
+
+Comments support one of:
+
+- **Giscus**: configure `giscus.repo`, `repo_id`, `category`, `category_id` using [giscus.app](https://giscus.app/). Enable Discussions and install the Giscus App on the public repository. Visitors sign in with GitHub.
+- **Waline**: configure `waline.server_url` for your deployed service. Visitor login and moderation are controlled by that service.
+- **Utterances**: configure `utterances.repo`, install the [Utterances App](https://github.com/apps/utterances) on the public repository; visitors sign in with GitHub and comments are stored in Issues.
+
+Giscus and Utterances `theme: auto` follow the site's light/dark selection; `theme_light` and `theme_dark` customize those modes. A fixed provider `theme` disables automatic switching. Waline loads matching v3 CSS and follows the site's appearance and skin. Empty Giscus/Waline `lang` follows the page language.
+
+Create an ordinary Hexo page at `source/guestbook/index.md` (or in the relevant language's page directory):
+
+```markdown
+---
+title: Guestbook
+layout: page
+comments: true
+comments_title: Leave a message
+---
+Questions, feedback and ideas are welcome.
+```
+
+Add its actual generated URL to navigation. `comments: false` disables comments for a page; global enablement and valid service configuration are always required. Optional front matter `comment_id` gives a page a stable discussion identifier. Reusing an ID across translations shares their discussion, so do so intentionally. Plan migrations before changing paths or titles.
+
+After deployment, verify actual analytics requests and real-time dashboard events. Submit a real comment, reload, and confirm persistence and moderation in the service dashboard. Local tests use service doubles and do not prove connectivity to a real account.
+
+References: [GA4](https://developers.google.com/analytics/devguides/collection/ga4/tag-options), [Umami](https://docs.umami.is/docs/tracker-configuration), [Clarity](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-setup), [Waline](https://waline.js.org/en/guide/get-started/), [Utterances](https://utteranc.es/).

@@ -1,0 +1,69 @@
+# Merge these sections into your site's _config.midnight.yml.
+# Keep one seo / web_analytics / comments block; do not append duplicate YAML keys.
+# Empty tokens and disabled switches make this template safe to copy.
+seo:
+  google_site_verification: ""
+  baidu_site_verification: ""
+  bing_site_verification: ""
+  shenma_site_verification: ""
+  sogou_site_verification: ""
+  so_site_verification: ""
+  yandex_site_verification: ""
+  pinterest_site_verification: ""
+  meta: []
+  # - name: referrer
+  #   content: strict-origin-when-cross-origin
+  verification_files: []
+  # Copy exact filename/content from the platform, not this placeholder:
+  # - path: googleYOUR_TOKEN.html
+  #   content: "google-site-verification: googleYOUR_TOKEN.html"
+
+web_analytics:
+  enabled: false
+  gtag: "" # GA4 G-... measurement ID
+  baidu: "" # ID following hm.js? in Baidu's tracking snippet
+  clarity: "" # Microsoft Clarity project ID
+  umami:
+    script_url: "" # Exact script URL from Umami
+    website_id: ""
+    domains: "" # Optional: example.com,www.example.com
+
+comments:
+  enabled: false
+  provider: giscus # Choose giscus, waline or utterances
+  title: ""
+  giscus:
+    repo: "" # owner/repo
+    repo_id: ""
+    category: ""
+    category_id: ""
+    mapping: pathname
+    theme: auto
+    theme_light: light
+    theme_dark: dark
+    lang: ""
+  waline:
+    server_url: ""
+    lang: ""
+    placeholder: ""
+    page_size: 10
+  utterances:
+    repo: "" # owner/repo
+    issue_term: pathname
+    theme: auto
+    theme_light: github-light
+    theme_dark: github-dark
+
+# Optional real article counters. Dashboard analytics does not populate these.
+article_statistics:
+  enabled: false
+  provider: endpoint
+  reads_endpoint: ""
+  comments_endpoint: ""
+  record_reads: false
+
+# Optional site-wide PV/UV display, independent of dashboard analytics.
+footer:
+  statistics:
+    enabled: false
+    source: busuanzi

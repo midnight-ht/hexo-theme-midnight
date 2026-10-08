@@ -103,6 +103,7 @@ comments:
   enable: false
   provider: giscus
   type: giscus
+  title: "" # Optional localized section title, e.g. {zh-CN: 留言, en: Comments}
   giscus:
     repo: ""
     repo_id: ""
@@ -111,17 +112,21 @@ comments:
     mapping: pathname
     reactions_enabled: "1"
     emit_metadata: "0"
-    theme: preferred_color_scheme
+    theme: auto # Follow the site appearance; a fixed provider theme is also accepted
+    theme_light: light
+    theme_dark: dark
+    lang: "" # Empty follows the page language
   waline:
     server_url: ""
     serverURL: ""
     placeholder: ""
-    lang: zh-CN
+    lang: "" # Empty follows the page language
     page_size: 10
   utterances:
     repo: ""
     issue_term: pathname
-    theme: github-dark
+    theme: auto
+    theme_light: github-light
     theme_dark: github-dark
     label: ""
     crossorigin: anonymous
@@ -149,15 +154,36 @@ seo:
   baidu_site_verification: ""
   google_site_verification: ""
   bing_site_verification: ""
+  shenma_site_verification: ""
+  sogou_site_verification: ""
+  so_site_verification: "" # 360: verify-v1
+  yandex_site_verification: ""
+  pinterest_site_verification: ""
+  # Verification fields accept a token string or an array of tokens, not HTML.
+  # Custom name/property tags; page front matter seo.meta overrides matching keys.
+  meta: []
+  # - name: referrer
+  #   content: strict-origin-when-cross-origin
+  # - property: fb:app_id
+  #   content: "your-app-id"
+  # Files are emitted verbatim; copy the exact filename/content from the platform.
+  verification_files: []
+  # - path: googleYOUR_TOKEN.html
+  #   content: "google-site-verification: googleYOUR_TOKEN.html"
 
 web_analytics:
   enabled: false
   enable: false
   baidu: ""
   google: ""
-  gtag: ""
+  gtag: "" # GA4 measurement ID (G-...)
   cnzz: ""
   woyaola: ""
+  umami:
+    script_url: "" # Exact tracker URL from your Umami dashboard
+    website_id: ""
+    domains: "" # Optional comma-separated allowed domains
+  clarity: "" # Microsoft Clarity project ID
   adsense_client: ""
   busuanzi:
     enabled: false
