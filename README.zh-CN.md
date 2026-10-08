@@ -421,3 +421,5 @@ comments_title: 留言
 接入验收：部署后检查统计请求与后台实时事件；在文章或留言板实际提交一条留言，刷新后确认仍存在，最后在服务后台检查保存与审核。主题本地测试使用服务替身，不代表真实账号已接通。
 
 参考：[GA4](https://developers.google.com/analytics/devguides/collection/ga4/tag-options)、[Umami](https://docs.umami.is/docs/tracker-configuration)、[Clarity](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-setup)、[Waline](https://waline.js.org/guide/get-started/)、[Utterances](https://utteranc.es/)。
+
+[SEO / GEO 内容与验证指南](docs/seo-geo.md)

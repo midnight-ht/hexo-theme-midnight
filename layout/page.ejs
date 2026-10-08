@@ -27,7 +27,7 @@ const isCategoryPage = pageRouteNoLang[0] === 'categories' && pageRouteNoLang[1]
       <%- partial('_partial/language-switcher') %>
     </header>
     <div class="article-content">
-      <%- page.content %>
+      <%- String(page.content || '').replace(/<(\/?)h1(\s[^>]*|)>/gi, '<$1h2$2>') %>
     </div>
   </article>
 

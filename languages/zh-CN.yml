@@ -21,3 +21,6 @@ rss: RSS
 advertise: 广告合作
 privacy: 隐私
 sitemap: 站点地图
+
+not_found_title: 页面未找到
+not_found_description: 页面可能已移动，或尚未发布。你可以返回首页或浏览文章归档。

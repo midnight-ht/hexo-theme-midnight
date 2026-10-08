@@ -21,3 +21,6 @@ rss: RSS
 advertise: Advertise
 privacy: Privacy
 sitemap: Sitemap
+
+not_found_title: Page not found
+not_found_description: This page may have moved or has not been published. Return home or browse the archive.

@@ -44,7 +44,9 @@
     link.addEventListener('click', event => {
       const href = link.getAttribute('href');
       if (!href || href === '#') return;
-      const target = document.getElementById(href.slice(1));
+      let anchor = href.slice(1);
+      try { anchor = decodeURIComponent(anchor); } catch (_) {}
+      const target = document.getElementById(anchor) || document.getElementById(href.slice(1));
       if (!target) return;
       event.preventDefault();
       const close = document.querySelector('button[data-mobile-menu-close]');
@@ -70,4 +72,21 @@
       if (motion.matches) { nodes.forEach(node => node.classList.remove('is-below')); observer.disconnect(); }
     });
   }
+})();
+
+// Mark the section currently being read without hiding or rewriting the article.
+(() => {
+  const directory = document.querySelector('.post-toc');
+  if (directory && window.matchMedia('(max-width: 860px)').matches) directory.open = false;
+  const links = [...document.querySelectorAll('.post-toc a[href^="#"]')];
+  if (!links.length || !('IntersectionObserver' in window)) return;
+  const sections = links.map(link => ({ link, node: document.getElementById(decodeURIComponent(link.hash.slice(1))) || document.getElementById(link.hash.slice(1)) })).filter(item => item.node);
+  const update = () => {
+    let current = sections[0];
+    sections.forEach(item => { if (item.node.getBoundingClientRect().top <= 160) current = item; });
+    sections.forEach(item => item === current ? item.link.setAttribute('aria-current', 'location') : item.link.removeAttribute('aria-current'));
+  };
+  let pending = false;
+  window.addEventListener('scroll', () => { if (!pending) { pending = true; requestAnimationFrame(() => { update(); pending = false; }); } }, { passive: true });
+  update();
 })();

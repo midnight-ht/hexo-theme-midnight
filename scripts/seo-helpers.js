@@ -34,9 +34,13 @@ hexo.extend.helper.register('midnight_structured_data', function(page, title, de
   const lang = this.midnight_page_lang(page);
   const home = this.full_url_for(this.midnight_i18n_url('/'));
   const isPost = page.layout === 'post' || page.__post || /_posts/.test(page.source || '');
+  const route = String(page.path || '').replace(/index\.html?$/i, '').split('/').filter(Boolean);
+  const collection = Boolean(page.archive || page.tag || page.category || page.tag_index || route.includes('tags') || route.includes('categories'));
+  const aboutPage = route[route.length - 1] === 'about';
+  const pageType = aboutPage ? 'AboutPage' : (collection ? 'CollectionPage' : 'WebPage');
   const graph = [
     { '@type': 'WebSite', '@id': root + '#website', url: root, name: this.config.title },
-    { '@type': 'WebPage', '@id': url + '#webpage', url, name: title, description, inLanguage: lang,
+    { '@type': pageType, '@id': url + '#webpage', url, name: title, description, inLanguage: lang,
       isPartOf: { '@id': root + '#website' } }
   ];
   if (isPost) {
@@ -53,12 +57,27 @@ hexo.extend.helper.register('midnight_structured_data', function(page, title, de
     if (cover) article.image = [cover];
     const references = sources(this, page);
     if (references.length) article.citation = references.map(item => item.url);
+    const tags = page.tags && Array.isArray(page.tags.data) ? page.tags.data.map(tag => String(tag.name || '')).filter(Boolean) : [];
+    if (tags.length) article.keywords = tags.join(', ');
     graph.push(article);
     graph[1].mainEntity = { '@id': article['@id'] };
   }
+  if (aboutPage && this.config.author) {
+    graph[1].mainEntity = { '@type': 'Person', name: String(this.config.author), url };
+  }
+  // Only describe the posts actually rendered on this page, never a fabricated catalog.
+  if (!isPost && page.posts) {
+    const values = page.posts.toArray ? page.posts.toArray() : (Array.isArray(page.posts.data) ? page.posts.data : (Array.isArray(page.posts) ? page.posts : []));
+    const entries = values.filter(post => this.midnight_page_lang(post) === lang).sort((a,b) => b.date - a.date);
+    const visible = collection ? entries : entries.slice(0, 6);
+    if (visible.length) {
+      const list = { '@type': 'ItemList', '@id': url + '#posts', itemListElement: visible.map((post, index) => ({ '@type': 'ListItem', position: index + 1, name: String(post.title || ''), url: this.full_url_for(this.midnight_i18n_url(post.path)) })) };
+      graph.push(list); graph[1].mainEntity = { '@id': list['@id'] };
+    }
+  }
   const crumbs = [{ '@type': 'ListItem', position: 1, name: this.__('home'), item: home }];
   if (isPost) crumbs.push({ '@type': 'ListItem', position: 2, name: this.__('archive'), item: this.full_url_for(this.midnight_i18n_url('/archives/')) });
-  if (url !== home) crumbs.push({ '@type': 'ListItem', position: crumbs.length + 1, name: String(page.title || title), item: url });
+  if (url !== home) crumbs.push({ '@type': 'ListItem', position: crumbs.length + 1, name: isPost ? String(page.title || title) : String(title || page.title).split((this.theme && this.theme.tab_title_separator) || ' | ')[0], item: url });
   if (crumbs.length > 1) {
     graph.push({ '@type': 'BreadcrumbList', '@id': url + '#breadcrumb', itemListElement: crumbs });
     graph[1].breadcrumb = { '@id': url + '#breadcrumb' };

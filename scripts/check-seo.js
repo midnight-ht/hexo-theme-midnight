@@ -23,6 +23,11 @@ assert(!article.dateModified && !article.image);
 assert.equal(article.citation.length, 1);
 assert.equal(helpers.midnight_author.call(ctx, { author: 'Guest' }).url, '');
 assert.equal(helpers.midnight_sources.call(ctx, { sources: ['data:text/html,test'] }).length, 0);
+const indexGraph = JSON.parse(helpers.midnight_structured_data.call(ctx, { path: 'en/archives/', archive: true, posts: { toArray: () => [{ path: 'en/test/', title: 'Actual article', date: 1 }] } }, 'Archive', 'Index'))['@graph'];
+assert(indexGraph.some(item => item['@type'] === 'CollectionPage'));
+assert.equal(indexGraph.find(item => item['@type'] === 'ItemList').itemListElement[0].name, 'Actual article');
+assert(JSON.parse(helpers.midnight_structured_data.call(ctx, { path: 'en/about/' }, 'About', 'Author'))['@graph'].some(item => item['@type'] === 'AboutPage'));
+
 const root = process.argv[2] ? path.resolve(process.argv[2]) : path.resolve(__dirname, '../example-site/public');
 function walk(dir) { return fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? walk(path.join(dir, entry.name)) : entry.name.endsWith('.html') ? [path.join(dir, entry.name)] : []); }
 let count = 0;
@@ -34,6 +39,7 @@ for (const file of walk(root)) {
   const standalone = path.dirname(file) === root && !/^(index|404)\.html$/i.test(path.basename(file));
   if (standalone && !document.querySelector('main, #midnight-seo-jsonld, link[href*="main.css"]')) continue;
   assert.equal(document.querySelectorAll('main').length, 1, `${file}: exactly one main landmark`);
+  assert.equal(document.querySelectorAll('h1').length, 1, `${file}: exactly one page title`);
   assert(!document.querySelector('link[hreflang="default"]'), `${file}: invalid language`);
   if (/[/\\]archives[/\\]index.html$/.test(file)) archives.push({ file, document });
   const canonical = document.querySelector('link[rel="canonical"]');
@@ -57,6 +63,12 @@ for (const file of walk(root)) {
   for (const block of blocks) {
     const data = JSON.parse(block.textContent);
     const graph = data['@graph'] || [data];
+    for (const list of graph.filter(item => item['@type'] === 'ItemList')) {
+      for (const entry of list.itemListElement) {
+        const target = new URL(entry.url).pathname;
+        assert([...document.querySelectorAll('main a[href]')].some(link => new URL(link.href, canonical.href).pathname === target && link.textContent.trim() === entry.name), `${file}: schema list entry must be visible`);
+      }
+    }
     const article = graph.find(item => item['@type'] === 'BlogPosting');
     if (article) {
       assert(!articleIds.has(article['@id']), `${file}: duplicate article schema`);

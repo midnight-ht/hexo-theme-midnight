@@ -320,3 +320,5 @@ Add its actual generated URL to navigation. `comments: false` disables comments 
 After deployment, verify actual analytics requests and real-time dashboard events. Submit a real comment, reload, and confirm persistence and moderation in the service dashboard. Local tests use service doubles and do not prove connectivity to a real account.
 
 References: [GA4](https://developers.google.com/analytics/devguides/collection/ga4/tag-options), [Umami](https://docs.umami.is/docs/tracker-configuration), [Clarity](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-setup), [Waline](https://waline.js.org/en/guide/get-started/), [Utterances](https://utteranc.es/).
+
+[SEO / GEO editorial guide](docs/seo-geo.md)

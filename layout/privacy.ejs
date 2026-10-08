@@ -3,7 +3,8 @@ const privacy = midnight_config('inner_pages.privacy', {});
 const title = midnight_value(privacy.title, __('privacy'));
 const description = midnight_value(privacy.description, '');
 const sections = privacy.sections || [];
-const updated = midnight_value(privacy.updated, '');
+const updatedValue = midnight_value(privacy.updated, '');
+const updated = updatedValue && Object.prototype.toString.call(updatedValue) === '[object Date]' ? date(updatedValue, 'YYYY-MM-DD') : updatedValue;
 %>
 
 <article class="inner-page legal-page privacy-page">

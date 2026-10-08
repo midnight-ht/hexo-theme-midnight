@@ -809,23 +809,8 @@ inner_pages:
     description:
       zh-CN: 面向技术读者、产品团队和商业决策者的赞助合作页面，清晰呈现版位、流程和编辑边界。
       en: Reach technical readers, product teams, and business decision makers through clearly marked sponsorships.
-    stats:
-      - value: 42k
-        label:
-          zh-CN: 月度技术读者
-          en: monthly technical readers
-      - value: 68%
-        label:
-          zh-CN: 工程、产品与创始人受众
-          en: engineers, product leads, and founders
-      - value: 2.8x
-        label:
-          zh-CN: 长文平均停留提升
-          en: longer-form attention lift
-      - value: ZH / EN
-        label:
-          zh-CN: 双语发行与主题页承载
-          en: bilingual publishing and topic pages
+    # Supply only verified audience figures; no sample statistics are displayed.
+    stats: []
     placements:
       - badge:
           zh-CN: Brand

@@ -73,7 +73,7 @@ if (enPostHtml.includes('/zh-CN/2026/05/19/midnight-agent-en/')) {
 const notFound = readPublic('404.html');
 [
   'class="not-found"',
-  'Page Not Found',
+  '页面未找到',
   'not-found__latest'
 ].forEach((needle) => {
   if (!notFound.includes(needle)) fail(`404.html is missing ${needle}`);
@@ -139,7 +139,6 @@ const advertisePage = readPublic('advertise/index.html');
 [
   'class="inner-page commercial-page advertise-page"',
   'commercial-contact__email',
-  'commercial-stats',
   'Send campaign brief'
 ].forEach((needle) => {
   if (!advertisePage.includes(needle)) fail(`advertise/index.html is missing ${needle}`);
@@ -185,3 +184,5 @@ const authorPage = readPublic('authors/midnight/index.html');
 if (!authorPage.includes('Midnight Team')) fail('authors/midnight/index.html is missing the author profile.');
 
 console.log('Example output OK');
+
+if (advertisePage.includes('42k') || advertisePage.includes('2.8x')) fail('Advertise must not display fabricated default audience figures.');

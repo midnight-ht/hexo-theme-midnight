@@ -23,7 +23,7 @@
     const parts = String(item.path || '').split('/').filter(Boolean);
     return headTermKey(item.name) === headTermKey(headTerm) || headTermKey(parts[parts.length - 1]) === headTermKey(headTerm);
   }) : null;
-  const headContentTitle = headCollection ? midnight_value(headCollection.label, page.title) : (page.archive ? __('archive') : (page.tag_index ? __('tags') : page.title));
+  const headContentTitle = headCollection ? midnight_value(headCollection.label, page.title) : (page.archive ? __('archive') : (page.tag_index ? __('tags') : (page.title === 'Page Not Found' ? __('not_found_title') : page.title)));
   const headRawTitle = headInnerPageKey && !headAboutHasContent ? midnight_value(headInnerPageConfig.title, page.title || config.title) : headContentTitle;
   const pageDescription = strip_html(
     (headInnerPageKey && !headAboutHasContent ? midnight_value(headInnerPageConfig.description, '') : '') ||
@@ -212,6 +212,7 @@
   <link rel="stylesheet" href="<%- url_for('/css/main.css') %>?v=<%- assetVersion %>">
   <link rel="stylesheet" href="<%- url_for('/css/editorial.css') %>?v=<%- assetVersion %>">
   <link rel="stylesheet" href="<%- url_for('/css/studio.css') %>">
+  <link rel="stylesheet" href="<%- url_for('/css/studio-inner.css') %>">
   <% const headComments = theme.comments || {}; const headWaline = headComments.waline || {}; %>
   <% if ((headComments.enabled === true || headComments.enable === true) && page.comments !== false && (headComments.provider || headComments.type) === 'waline' && /^https?:\/\/[^\s<>"']+$/i.test(String(headWaline.server_url || headWaline.serverURL || '').trim())) { %>
     <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css">

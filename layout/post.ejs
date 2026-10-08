@@ -101,7 +101,7 @@ function categoryUrl(label) {
   <nav class="breadcrumbs" aria-label="<%= configText('labels.breadcrumb', 'Breadcrumb') %>"><a href="<%- midnight_i18n_url('/') %>"><%= __('home') %></a><span aria-hidden="true">/</span><a href="<%- midnight_i18n_url('/archives/') %>"><%= __('archive') %></a></nav>
   <header class="post-hero">
     <div class="post-hero__kicker">
-      <span class="tag tag--<%= tagClass(primaryTag) %>"><%= primaryTag %></span>
+      <% if (primaryTag) { %><span class="tag tag--<%= tagClass(primaryTag) %>"><%= primaryTag %></span><% } %>
       <time datetime="<%= date_xml(page.date) %>"><%= date(page.date, 'YYYY-MM-DD') %></time>
     </div>
 
@@ -193,17 +193,17 @@ function categoryUrl(label) {
     <aside class="post-sidebar">
       <p class="post-sidebar__label"><%= configText('labels.sidebar', 'Sidebar') %></p>
 
-      <section class="sidebar-panel post-toc">
-        <h2><%= configText('labels.toc', 'Contents') %></h2>
-        <p><%= configText('labels.toc_description', '') %></p>
+      <% if (tocItems.length) { %><details class="sidebar-panel post-toc" open><summary><%= configText('labels.toc', 'Contents') %></summary><nav aria-label="<%= configText('labels.toc', 'Contents') %>">
+
+
         <% if (tocItems.length) { %>
           <% tocItems.forEach((item) => { %>
-            <a class="toc-link toc-link--h<%= item.level %>" href="#<%- item.id %>"><%= item.text %></a>
+            <a class="toc-link toc-link--h<%= item.level %>" href="#<%= item.id %>"><%= item.text %></a>
           <% }) %>
         <% } else { %>
           <span class="toc-empty"><%= configText('labels.toc_empty', 'No headings yet') %></span>
         <% } %>
-      </section>
+      </nav></details><% } %>
 
       <% if (midnight_config('sponsored.enabled', false) === true) { %>
 <section class="sponsor sponsor--side" aria-label="<%= configText('labels.sponsored', 'Sponsored') %>">
@@ -252,7 +252,7 @@ function categoryUrl(label) {
       <p><%= configText('labels.continue_reading_description', '') %></p>
     </div>
     <div class="related-grid">
-      <% relatedPosts.forEach((post, index) => { const label = ['AI Agent', 'Business', 'Hexo Theme'][index] || 'Research'; %>
+      <% relatedPosts.forEach((post, index) => {  %>
         <article class="related-card">
           <% if (post.cover) { %><a class="editorial-cover" href="<%- postUrl(post) %>" tabindex="-1" aria-hidden="true"><img src="<%= url_for(post.cover) %>" alt="" loading="lazy"></a><% } %>
           <h3><a href="<%- postUrl(post) %>"><%= post.title %></a></h3>
