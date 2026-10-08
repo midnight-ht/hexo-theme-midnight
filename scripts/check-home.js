@@ -20,17 +20,16 @@ function render(posts) {
   })).window.document;
 }
 const post = (id, extra = {}) => ({ title: id, path: id + '/', lang: 'zh-CN', date: new Date('2026-10-08'), description: 'A real summary', tags: [{ name: 'Quality' }], ...extra });
-let doc = render([post('latest'), post('false', { editor_pick: 'false' }), post('empty', { editor_pick: '' }), post('arbitrary', { editor_pick: 'garbage' })]);
-assert.equal(doc.querySelectorAll('.home-selected').length, 0);
-assert.equal(doc.querySelectorAll('.latest-list__item').length, 4);
-assert(doc.querySelector('.latest-card__meta').textContent.includes('测试与安全'));
-const posts = [post('first', { editor_pick: true, editor_pick_order: 1 }), post('second', { editor_pick: true, editor_pick_order: 2 }), post('third', { editor_pick: true, editor_pick_order: 3 }), post('ordinary'), post('english', { lang: 'en', editor_pick: true, editor_pick_order: 0 })];
+let doc = render([post('latest'), post('false', { editor_pick: 'false' }), post('empty', { editor_pick: '' })]);
+assert.equal(doc.querySelectorAll('.home-selected,.home-sidebar').length, 0);
+assert.equal(doc.querySelectorAll('.studio-entry').length, 3);
+assert(doc.querySelector('.studio-entry__topic').textContent.includes('测试与安全'));
+const posts = [post('first', { editor_pick: true }), post('second', { editor_pick: true }), post('third'), post('english', { lang: 'en', editor_pick: true })];
 doc = render(posts);
-assert.deepEqual([...doc.querySelectorAll('.home-selected h3')].map(node => node.textContent), ['first', 'second']);
-assert.deepEqual([...doc.querySelectorAll('.latest-list h3')].map(node => node.textContent), ['third', 'ordinary']);
+assert.deepEqual([...doc.querySelectorAll('.studio-entry h3')].map(node => node.textContent), ['first', 'second', 'third']);
+assert.equal(doc.querySelectorAll('.studio-entry--lead').length, 1);
 assert.equal(doc.querySelectorAll('h1').length, 1);
-doc = render([post('only', { editor_pick: true })]);
-assert.equal(doc.querySelectorAll('.home-selected__story').length, 1);
-assert.equal(doc.querySelectorAll('.latest-list__item').length, 0);
-assert.equal(render([]).querySelectorAll('.home-selected').length, 0);
-console.log('Homepage selection, language, localization and deduplication OK');
+assert.equal(render([post('only', { editor_pick: true })]).querySelectorAll('.studio-entry').length, 1);
+assert.equal(render([]).querySelectorAll('.studio-entry').length, 0);
+assert.equal(render(Array.from({length: 10}, (_, i) => post(String(i)))).querySelectorAll('.studio-entry').length, 6);
+console.log('Studio homepage language, localized topics, empty state and nonduplicated stream OK');

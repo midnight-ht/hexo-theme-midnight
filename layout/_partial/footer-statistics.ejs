@@ -1,0 +1,12 @@
+<%
+const stats = (theme.footer && theme.footer.statistics) || {};
+const statsEnabled = stats.enabled === true || stats.enable === true;
+const pvFormat = midnight_value(stats.pv_format, '{} page views');
+const uvFormat = midnight_value(stats.uv_format, '{} visitors');
+%>
+<% if (statsEnabled && (stats.source || 'busuanzi') === 'busuanzi') { %>
+<span class="site-footer__stats">
+  <span id="busuanzi_container_site_pv" style="display:none"><%= pvFormat.split('{}')[0] %><span id="busuanzi_value_site_pv"></span><%= pvFormat.split('{}')[1] || '' %></span>
+  <span id="busuanzi_container_site_uv" style="display:none"><%= uvFormat.split('{}')[0] %><span id="busuanzi_value_site_uv"></span><%= uvFormat.split('{}')[1] || '' %></span>
+</span>
+<% } %>

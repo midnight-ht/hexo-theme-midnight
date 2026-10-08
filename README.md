@@ -194,7 +194,7 @@ Optional statistics, search, comments, subscriptions, and AI modules only render
 
 ## Editorial layout and SEO / GEO (0.3)
 
-The homepage, reading view, archives and topic pages use open grids, fine rules and a consistent type scale. Covers render only when supplied. Explicit `editor_pick` flags select editorial recommendations; popularity lists require measured reads. Ocean, jade and violet palettes retain light, dark and system preferences.
+The homepage, reading view, archives and topic pages use open grids, fine rules and a consistent type scale. Covers render only when supplied. The homepage uses a distinct ink-and-paper identity, an original SVG loop, and a single chronological article stream. Ocean, jade and violet palettes retain light, dark and system preferences.
 
 The theme emits WebSite, WebPage, BlogPosting and breadcrumb JSON-LD from visible titles, authors, dates and descriptions. Translation links use actual counterpart paths with `x-default`; 404 pages are `noindex`. Index sitemap entries no longer receive synthetic build-time modification dates. Set `seo.structured_data: false` to disable theme JSON-LD. Existing schema injectors should skip pages containing `id="midnight-seo-jsonld"` to avoid duplicate article entities.
 
@@ -266,7 +266,6 @@ After deploying, inspect the homepage source and confirm verification file conte
 
 References: [Google](https://support.google.com/webmasters/answer/9008080?hl=en), [Bing](https://learn.microsoft.com/en-us/bingwebmaster/verifying-wordpress), [Sogou](https://zhanzhang.sogou.com/index.php/help/siteVerify), [Yandex](https://yandex.ru/support/webmaster/en/service/quick-start). Run `npm run lint:webmaster` to check optional tokens, multiple owners, overrides, escaping and verification file validation.
 
-Homepage picks show only current-language posts explicitly marked `editor_pick: true`, ordered by `editor_pick_order` ascending then date descending, with a maximum of two. With no picks, the entire section is hidden. Selected posts are excluded from the latest list; archives retain every post.
 
 ## Analytics and comments / guestbook
 

@@ -211,6 +211,7 @@
   <% const assetVersion = theme.asset_version || theme.version || '0.3.0'; %>
   <link rel="stylesheet" href="<%- url_for('/css/main.css') %>?v=<%- assetVersion %>">
   <link rel="stylesheet" href="<%- url_for('/css/editorial.css') %>?v=<%- assetVersion %>">
+  <link rel="stylesheet" href="<%- url_for('/css/studio.css') %>">
   <% const headComments = theme.comments || {}; const headWaline = headComments.waline || {}; %>
   <% if ((headComments.enabled === true || headComments.enable === true) && page.comments !== false && (headComments.provider || headComments.type) === 'waline' && /^https?:\/\/[^\s<>"']+$/i.test(String(headWaline.server_url || headWaline.serverURL || '').trim())) { %>
     <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css">

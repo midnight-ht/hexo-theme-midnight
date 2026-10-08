@@ -1,0 +1,6 @@
+<% const links = midnight_language_links(page); %>
+<div class="studio-controls">
+<% if (links.length > 1) { %><label><span class="sr-only"><%= __('translations') %></span><select data-language-select><% links.forEach(item => { %><option value="<%- item.url %>"<%= item.active ? ' selected' : '' %>><%= item.lang %></option><% }) %></select></label><% } %>
+<label><span class="sr-only"><%= midnight_text('labels.color_scheme', 'Appearance') %></span><select data-scheme-select aria-label="<%= midnight_text('labels.color_scheme', 'Appearance') %>"><option value="system"><%= midnight_text('labels.scheme_system', 'System') %></option><option value="light"><%= midnight_text('labels.light', 'Light') %></option><option value="dark"><%= midnight_text('labels.dark', 'Dark') %></option></select></label>
+<label><span class="sr-only"><%= midnight_text('labels.skin', 'Palette') %></span><select data-skin-select aria-label="<%= midnight_text('labels.skin', 'Palette') %>"><option value="ocean"><%= midnight_text('labels.skin_ocean', 'Ocean') %></option><option value="jade"><%= midnight_text('labels.skin_jade', 'Jade') %></option><option value="violet"><%= midnight_text('labels.skin_violet', 'Violet') %></option></select></label>
+</div>

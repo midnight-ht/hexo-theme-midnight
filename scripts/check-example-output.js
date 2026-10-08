@@ -98,10 +98,10 @@ if (!homePage.includes('navigator.languages')) {
 if (!homePage.includes('class="language-redirect-skeleton"')) {
   fail('index.html should render the language redirect skeleton.');
 }
-if (!homePage.includes('class="section-heading__more" href="/zh-CN/archives/"')) {
+if (!homePage.includes('class="section-heading__more studio-text-link" href="/zh-CN/archives/"')) {
   fail('index.html is missing the latest posts view-more archive link.');
 }
-if (!homePage.includes('class="archive-card archive-card--v2 latest-list__item"')) {
+if (!homePage.includes('class="studio-entry studio-entry--lead"')) {
   fail('index.html latest posts should render as an article list.');
 }
 
@@ -111,7 +111,7 @@ if (!homePage.includes('class="archive-card archive-card--v2 latest-list__item"'
 ].forEach(([file, langAttr]) => {
   const html = readPublic(file);
   if (!html.includes(langAttr)) fail(`${file} is missing ${langAttr}.`);
-  if (!html.includes('class="archive-card archive-card--v2 latest-list__item"')) {
+  if (!html.includes('class="studio-entry studio-entry--lead"')) {
     fail(`${file} should render the localized latest posts list.`);
   }
 });

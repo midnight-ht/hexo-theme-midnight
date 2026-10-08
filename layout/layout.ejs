@@ -8,15 +8,16 @@
   data-code-copied-label="<%= midnight_text('labels.code_copied_label', 'Code copied') %>"
 >
   <%- partial('_partial/head') %>
-  <body>
+  <% const studioHome = ['', ...((theme.i18n && theme.i18n.languages) || [])].includes(String(page.path || '').replace(/index\.html?$/i, '').replace(/^\/+|\/+$/g, '')); %>
+  <body<% if (studioHome) { %> class="studio-page"<% } %>>
     <%- partial('_partial/language-redirect-skeleton') %>
     <a class="skip-link" href="#content"><%= midnight_text('labels.skip_to_content', 'Skip to content') %></a>
     <div class="site-shell">
-      <%- partial('_partial/header') %>
+      <%- partial(studioHome ? '_partial/studio-header' : '_partial/header') %>
       <main class="site-main" id="content">
         <%- body %>
       </main>
-      <%- partial('_partial/footer') %>
+      <%- partial(studioHome ? '_partial/studio-footer' : '_partial/footer') %>
     </div>
     <% const layoutAssetVersion = theme.asset_version || theme.version || '0.3.0'; %>
     <script src="<%- url_for('/js/main.js') %>?v=<%- layoutAssetVersion %>" defer></script>
@@ -26,6 +27,7 @@
     <% if (midnight_config('article_statistics.enabled', false) === true && midnight_config('article_statistics.provider', '') === 'endpoint' && (midnight_config('article_statistics.reads_endpoint', '') || midnight_config('article_statistics.comments_endpoint', ''))) { %>
       <script src="<%- url_for('/js/statistics.js') %>" defer></script>
     <% } %>
+    <% if (studioHome) { %><script src="<%- url_for('/js/studio.js') %>" defer></script><% } %>
     <%- partial('_partial/analytics') %>
   </body>
 </html>

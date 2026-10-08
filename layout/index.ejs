@@ -1,367 +1,43 @@
 <%
-const allPosts = page.posts && page.posts.toArray ? page.posts.toArray() : [];
-const rawPosts = allPosts.sort((a, b) => b.date - a.date);
-const currentLang = midnight_page_lang(page);
-const langPosts = rawPosts.filter((post) => midnight_page_lang(post) === currentLang);
-const posts = langPosts;
-const homePosts = posts;
-const collectionConfigs = midnight_config('inner_pages.collections', []);
-const configuredChannels = midnight_config('home.channels', ['AI Agent', 'Engineering', 'Business', 'Product', 'Research', 'Opinion', 'Hexo Theme']);
-const authorName = config.author || (theme.appearance && (theme.appearance.nick || theme.appearance.logo_text)) || 'midnight';
-const authorInitial = Array.from(String(authorName).trim())[0] || 'm';
-const newsletterFormAction = String(midnight_config('inner_pages.newsletter.form.action', '') || '').trim();
-
-function postKey(post) {
-  return post && (post.path || post.permalink || post.slug || post.title);
-}
-
-function uniquePosts(list) {
-  const seen = new Set();
-  return list.filter((post) => {
-    const key = postKey(post);
-    if (!key || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-function truthyFrontMatter(value) {
-  if (value === true) return true;
-  if (typeof value === 'number') return value > 0;
-  if (typeof value === 'string') return ['true', 'yes', '1', 'on'].includes(value.trim().toLowerCase());
-  return false;
-}
-
-function editorPickRank(post) {
-  const candidates = [
-    post.editor_pick_order,
-    post.editorPickOrder,
-    post.editor_order,
-    post.featured_order,
-    post.weight
-  ];
-  const rank = candidates.map(Number).find((value) => Number.isFinite(value));
-  return Number.isFinite(rank) ? rank : 9999;
-}
-
-function isEditorPick(post) {
-  return [
-    post.editor_pick,
-    post.editorPick,
-    post.editor_selected,
-    post.editorSelected,
-    post.home_editor_pick,
-    post.homeEditorPick
-  ].some(truthyFrontMatter);
-}
-
-function clickCount(post) {
-  return midnight_metric(post, 'reads');
-}
-
-function postDateValue(post) {
-  const value = post && post.date && typeof post.date.valueOf === 'function' ? post.date.valueOf() : new Date(post.date || 0).valueOf();
-  return Number.isFinite(value) ? value : 0;
-}
-
-function isWithinRecentDays(post, days) {
-  const now = Date.now();
-  const value = postDateValue(post);
-  return value > 0 && value >= now - days * 24 * 60 * 60 * 1000 && value <= now + 24 * 60 * 60 * 1000;
-}
-
-function withoutPosts(source, excluded) {
-  const excludedKeys = new Set(excluded.map(postKey).filter(Boolean));
-  return source.filter((post) => !excludedKeys.has(postKey(post)));
-}
-
-function termSlug(term) {
-  return String((term && (term.slug || term.name)) || '').trim().replace(/\s+/g, '-');
-}
-
-function collectionKindFromPath(path) {
-  const parts = String(path || '').split('/').filter(Boolean);
-  const index = parts.findIndex((part) => ['tags', 'categories'].includes(part.toLowerCase()));
-  return index >= 0 ? parts[index].toLowerCase() : 'tags';
-}
-
-function collectionValueFromPath(path) {
-  const parts = String(path || '').split('/').filter(Boolean);
-  const index = parts.findIndex((part) => ['tags', 'categories'].includes(part.toLowerCase()));
-  return index >= 0 ? parts[index + 1] : '';
-}
-
-function termUrl(kind, value) {
-  return kind === 'categories' ? midnight_i18n_url('/categories/' + encodeURIComponent(value) + '/') : midnight_tag_url(value);
-}
-
-function collectTerms(field) {
-  const map = {};
-  posts.forEach((post) => {
-    const rawTerms = post[field] && post[field].data ? post[field].data : (Array.isArray(post[field]) ? post[field] : []);
-    const terms = rawTerms.map((term) => (typeof term === 'string' ? { name: term, slug: term } : term));
-    terms.forEach((term) => {
-      const slug = termSlug(term);
-      if (!slug) return;
-      const key = slug.toLowerCase();
-      if (!map[key]) {
-        map[key] = {
-          name: term.name || slug,
-          slug,
-          path: term.path,
-          count: 0,
-          kind: field === 'categories' ? 'categories' : 'tags',
-          latest: null
-        };
-      }
-      map[key].count += 1;
-      if (!map[key].latest || postDateValue(post) > postDateValue(map[key].latest)) map[key].latest = post;
-    });
-  });
-  return Object.values(map).sort((a, b) => b.count - a.count || String(a.name).localeCompare(String(b.name)));
-}
-
-const tagTerms = collectTerms('tags');
-const categoryTerms = collectTerms('categories');
-const collectionEntries = uniquePosts(collectionConfigs.map((item) => {
-  const kind = collectionKindFromPath(item.path);
-  const configuredValue = collectionValueFromPath(item.path) || item.name;
-  const source = kind === 'categories' ? categoryTerms : tagTerms;
-  const match = source.find((term) => term.slug.toLowerCase() === String(configuredValue || '').toLowerCase() || String(term.name).toLowerCase() === String(item.name || '').toLowerCase());
-  if (!match) return null;
-  return {
-    name: match.name,
-    slug: match.slug,
-    count: match.count,
-    kind,
-    path: item.path,
-    label: midnight_value(item.label, match.name),
-    description: midnight_value(item.description, ''),
-    latest: match.latest
-  };
-}).filter(Boolean));
-const channels = collectionEntries.length ? collectionEntries.map((item) => item.label) : tagTerms.map((item) => item.name);
-const series = (collectionEntries.length ? collectionEntries : tagTerms.slice(0, 4)).slice(0, 6);
-const editorPosts = uniquePosts(homePosts.filter(isEditorPick)
-  .sort((a, b) => editorPickRank(a) - editorPickRank(b) || postDateValue(b) - postDateValue(a))).slice(0, 2);
-const latestPosts = withoutPosts(homePosts, editorPosts).slice(0, 6);
-const latestListUrl = midnight_i18n_url('/archives/');
-const popularPosts = homePosts
-  .filter((post) => isWithinRecentDays(post, 7) && clickCount(post) !== null)
-  .sort((a, b) => clickCount(b) - clickCount(a) || postDateValue(b) - postDateValue(a))
-  .slice(0, 3);
-
-function postUrl(post) {
-  return post.path === '#' ? '#' : midnight_i18n_url(post.path);
-}
-
-function postExcerpt(post) {
-  return midnight_excerpt(post, 150);
-}
-
-function primaryTag(post, fallback) {
-  const rawTags = post.tags && post.tags.data ? post.tags.data : (Array.isArray(post.tags) ? post.tags : []);
-  const tags = rawTags.map((tag) => (typeof tag === 'string' ? { name: tag, slug: tag } : tag));
-  if (tags.length) return tags[0].name;
-  return fallback;
-}
-
-function channelClass(label) {
-  return String(label).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'topic';
-}
-
-function tagLabel(label) {
-  const collection = collectionConfigs.find((item) => item.name === label || midnight_value(item.label, item.name) === label);
-  return collection ? midnight_value(collection.label, label) : label;
-}
-
-function tagUrl(label) {
-  const collection = collectionConfigs.find((item) => {
-    const itemLabel = midnight_value(item.label, item.name);
-    return item.name === label || itemLabel === label;
-  });
-  if (collection && collection.path) {
-    return termUrl(collectionKindFromPath(collection.path), collectionValueFromPath(collection.path) || collection.name || label);
-  }
-  return midnight_tag_url(label);
-}
-
-function seriesUrl(item) {
-  if (item.path) return termUrl(collectionKindFromPath(item.path), collectionValueFromPath(item.path) || item.slug || item.name);
-  return termUrl(item.kind || 'tags', item.slug || item.name);
-}
-
-function configText(path, fallback) {
-  return midnight_text(path, fallback);
-}
+const homeLang = midnight_page_lang(page);
+const english = homeLang === 'en';
+const posts = (page.posts && page.posts.toArray ? page.posts.toArray() : []).filter(post => midnight_page_lang(post) === homeLang).sort((a,b) => b.date - a.date);
+const homePosts = posts.slice(0, 6);
+const collections = midnight_config('inner_pages.collections', []);
+const author = config.author || (theme.appearance && theme.appearance.logo_text) || config.title;
+const tagline = midnight_value(theme.appearance && theme.appearance.tagline, config.subtitle || config.title);
+const headlineParts = String(tagline).split('，');
+const bio = midnight_text('labels.author_description', '');
+function tagOf(post) { const tags = post.tags && post.tags.data ? post.tags.data : (Array.isArray(post.tags) ? post.tags : []); return typeof tags[0] === 'string' ? tags[0] : tags[0] && tags[0].name; }
+function tagLabel(name) { const item = collections.find(item => item.name === name); return item ? midnight_value(item.label, name) : name; }
+function collectionHref(item) { const parts = String(item.path || '').split('/').filter(Boolean); const i = parts.indexOf('tags'); return i >= 0 ? midnight_tag_url(parts[i+1]) : midnight_i18n_url(item.path || '/'); }
+const topics = collections.filter(item => posts.some(post => { const tags = post.tags && post.tags.data ? post.tags.data : (Array.isArray(post.tags) ? post.tags : []); return tags.some(tag => (typeof tag === 'string' ? tag : tag.name) === item.name); }));
 %>
-
-<% if (midnight_config('sponsored.enabled', false) === true) { %>
-<section class="sponsor sponsor--top" aria-label="<%= configText('labels.sponsored', 'Sponsored') %>">
-  <span><%= configText('labels.sponsored', 'Sponsored') %></span>
-  <strong><%= configText('home.sponsors.top.title', 'Top brand banner') %></strong>
-  <small><%= configText('home.sponsors.top.description', '') %></small>
-</section>
-<% } %>
-
-<header class="publication-intro">
-  <p><%= midnight_value(theme.appearance && theme.appearance.tagline, config.subtitle || config.description || '') %></p>
-</header>
-<h1 class="home-title"><%= config.title %></h1>
-<% if (editorPosts.length) { %>
-<section class="home-selected" aria-labelledby="home-selected-title">
-  <h2 id="home-selected-title"><%= configText('labels.editor_picks', 'Editor Picks') %></h2>
-  <div class="home-selected__grid">
-    <% editorPosts.forEach((post) => { const tag = primaryTag(post, ''); %>
-    <article class="home-selected__story">
-      <% if (tag) { %><a class="home-selected__category" href="<%- tagUrl(tag) %>"><%= tagLabel(tag) %></a><% } %>
-      <h3><a href="<%- postUrl(post) %>"><%= post.title %></a></h3>
-      <% if (postExcerpt(post)) { %><p><%= postExcerpt(post) %></p><% } %>
-      <footer><span><%= post.author || authorName %></span><time datetime="<%= date_xml(post.date) %>"><%= date(post.date, 'YYYY-MM-DD') %></time></footer>
-    </article>
-    <% }) %>
-  </div>
-</section>
-<% } %>
-<% if (!homePosts.length) { %>
-<section class="archive-empty"><p><%= configText('labels.no_posts', 'No Posts Yet') %></p></section>
-<% } %>
-
-<% if (channels.length) { %>
-<nav class="channel-tabs" aria-label="<%= configText('labels.channel_entry', 'Channels') %>">
-  <div class="channel-tabs__head">
-    <strong><%= configText('labels.channel_entry', 'Channels') %></strong>
-    <span><%= configText('labels.channel_entry_description', '') %></span>
-  </div>
-  <div class="channel-tabs__track">
-    <% channels.forEach((channel) => { %>
-      <a class="tag tag--<%= channelClass(channel) %>" href="<%- tagUrl(channel) %>"><%= channel %></a>
-    <% }) %>
-  </div>
-</nav>
-<% } %>
-
-<section class="home-layout">
-  <div class="content-column">
-    <% if (midnight_config('sponsored.enabled', false) === true) { %>
-<section class="sponsor sponsor--native" aria-label="<%= configText('labels.sponsored', 'Sponsored') %>">
-      <span><%= configText('labels.sponsored', 'Sponsored') %></span>
-      <strong><%= configText('home.sponsors.native.title', 'Native sponsored slot') %></strong>
-      <small><%= configText('home.sponsors.native.description', '') %></small>
-    </section>
-<% } %>
-
-    <% if (latestPosts.length) { %>
-    <div class="section-heading">
-      <div class="section-heading__copy">
-        <h2 id="latest-posts"><%= __('latest_posts') %></h2>
-        <p><%= configText('labels.latest_description', '') %></p>
-      </div>
-      <a class="section-heading__more" href="<%- latestListUrl %>"><%= configText('labels.view_more', 'View More') %></a>
+<section class="studio-hero">
+  <div class="studio-container studio-hero__grid">
+    <div class="studio-hero__copy">
+      <h1><% if (!english && headlineParts.length === 2) { %><span><%= headlineParts[0] %>，</span><span><%= headlineParts[1] %><span class="studio-type-dot" aria-hidden="true">.</span></span><% } else { %><%= tagline %><% } %></h1>
+      <% if (bio) { %><p class="studio-hero__description"><%= bio %></p><% } %>
+      <div class="studio-hero__actions"><a class="studio-primary-link" href="#studio-articles"><%= english ? 'Explore the journal' : '阅读文章' %><span class="studio-arrow" aria-hidden="true">↘</span></a><a class="studio-author-link" href="<%- midnight_i18n_url('/about/') %>"><span><%= author %></span><span aria-hidden="true">↗</span></a></div>
     </div>
-
-    <div class="latest-list" aria-labelledby="latest-posts">
-      <% latestPosts.forEach((post, index) => { const fallback = ''; const tag = primaryTag(post, fallback); %>
-        <article class="archive-card archive-card--v2 latest-list__item">
-          <time class="archive-date" datetime="<%= date_xml(post.date) %>">
-            <span><%= date(post.date, 'MM-DD') %></span>
-            <small><%= date(post.date, 'YYYY') %></small>
-          </time>
-          <div class="archive-card__body">
-            <div class="latest-card__meta">
-              <% if (tag) { %><a class="tag tag--<%= channelClass(tag) %>" href="<%- tagUrl(tag) %>"><%= tagLabel(tag) %></a><% } %>
-              <time datetime="<%= date_xml(post.date) %>"><%= date(post.date, 'YYYY-MM-DD') %></time>
-            </div>
-            <h3><a href="<%- postUrl(post) %>"><%= post.title %></a></h3>
-            <p><%= postExcerpt(post) || config.description || theme.description %></p>
-          </div>
-          <footer class="archive-card__stats">
-            <span><%= configText('labels.author', 'Author') %> <%= post.author || authorName %></span>
-            <%- partial('_partial/metric', { item: post, kind: 'reads', metricTag: 'span' }) %>
-          </footer>
-        </article>
-      <% }) %>
-    </div>
-    <% } %>
+    <div class="studio-art" data-studio-art aria-hidden="true"><div class="studio-art__motion"><%- partial('_partial/studio-loop') %></div></div>
   </div>
-
-  <aside class="home-sidebar">
-    <% if (midnight_config('sponsored.enabled', false) === true) { %>
-<section class="sponsor sponsor--side" aria-label="<%= configText('labels.sponsored', 'Sponsored') %>">
-      <span><%= configText('labels.sponsored', 'Sponsored') %></span>
-      <strong><%= configText('home.sponsors.side.title', 'Sidebar ad slot') %></strong>
-      <small><%= configText('home.sponsors.side.description', '') %></small>
-    </section>
-<% } %>
-
-    <% if (popularPosts.length) { %>
-    <section class="sidebar-panel popular-panel">
-      <h2><%= configText('labels.popular', 'Popular') %></h2>
-      <p><%= configText('labels.popular_description', '') %></p>
-      <% popularPosts.forEach((post, index) => { %>
-        <article>
-          <span>0<%= index + 1 %></span>
-          <div>
-            <h3><a href="<%- postUrl(post) %>"><%= post.title %></a></h3>
-            <small><%- partial('_partial/metric', { item: post, kind: 'reads', metricTag: 'span' }) %> <%= date(post.date, 'MM-DD') %></small>
-          </div>
-        </article>
-      <% }) %>
-    </section>
-
-    <% } %>
-    <section class="sidebar-panel author-panel">
-      <h2><%= configText('labels.author', 'Author') %></h2>
-      <p><%= configText('labels.author_description', '') %></p>
-      <div>
-        <span class="avatar avatar--large"><%= authorInitial %></span>
-        <strong><%= authorName %></strong>
-        <small><%= configText('labels.publisher_role', 'Publisher / Editor') %></small>
-      </div>
-      <a class="panel-button" href="<%- midnight_i18n_url('/about/') %>"><%= configText('labels.author_profile', 'View Author Profile') %></a>
-    </section>
-
-    <section class="sidebar-panel">
-      <h2><%= configText('labels.series', 'Series') %></h2>
-      <p><%= configText('labels.series_description', '') %></p>
-      <% series.forEach((item) => { %>
-        <a class="series-row" href="<%- seriesUrl(item) %>"><span><%= item.label || item.name %></span><b><%= item.count %></b></a>
-      <% }) %>
-    </section>
-
-    <section class="sidebar-panel tag-panel">
-      <h2><%= __('tags') %></h2>
-      <p><%= configText('labels.topics_description', '') %></p>
-      <% channels.slice(0, 6).forEach((channel) => { %>
-        <a class="tag tag--<%= channelClass(channel) %>" href="<%- tagUrl(channel) %>"><%= channel %></a>
-      <% }) %>
-    </section>
-
-    <% if (newsletterFormAction) { %>
-      <section class="sidebar-panel newsletter-panel">
-        <h2><%= __('newsletter') %></h2>
-        <p><%= configText('labels.newsletter_description', '') %></p>
-        <%- partial('_partial/newsletter-form', { variant: 'home' }) %>
-      </section>
-    <% } %>
-  </aside>
+  <div class="studio-container studio-hero__bottom"><span><%= english ? 'Engineering notes, from idea to operation.' : '把想法写清楚，把系统做扎实。' %></span><a href="#studio-articles" class="studio-scroll-link" aria-label="<%= english ? 'Scroll to articles' : '跳转到文章' %>"><span aria-hidden="true">↓</span></a></div>
 </section>
-
-<% if (series.length) { %>
-<section class="topic-band">
-  <div class="section-heading">
-    <h2><%= configText('labels.topic_entry', 'Topic Entry') %></h2>
-    <p><%= configText('labels.topic_entry_description', '') %></p>
+<section class="studio-writing" id="studio-articles" aria-labelledby="studio-latest">
+<div class="studio-container">
+  <div class="studio-section-heading"><div><span class="studio-section-index" aria-hidden="true">01 /</span><h2 id="studio-latest"><%= __('latest_posts') %></h2></div><a class="section-heading__more studio-text-link" href="<%- midnight_i18n_url('/archives/') %>"><%= english ? 'All writing' : '全部文章' %><span aria-hidden="true">↗</span></a></div>
+  <div class="studio-entries">
+  <% homePosts.forEach((post,index) => { const tag = tagOf(post); const excerpt = midnight_excerpt(post, 150); %>
+  <article class="studio-entry<%= index === 0 ? ' studio-entry--lead' : '' %>" data-studio-reveal>
+    <div class="studio-entry__date"><time datetime="<%= date_xml(post.date) %>"><%= date(post.date, 'MM.DD') %><small><%= date(post.date, 'YYYY') %></small></time></div>
+    <div class="studio-entry__body"><% if (tag) { %><a class="studio-entry__topic" href="<%- midnight_tag_url(tag) %>"><%= tagLabel(tag) %></a><% } %><h3><a href="<%- midnight_i18n_url(post.path) %>"><%= post.title %></a></h3><% if (excerpt) { %><p><%= excerpt %></p><% } %><div class="studio-entry__metrics"><%- partial('_partial/metric', { item: post, kind: 'reads', metricTag: 'span' }) %><%- partial('_partial/metric', { item: post, kind: 'comments', metricTag: 'span' }) %></div></div>
+    <a class="studio-entry__open" href="<%- midnight_i18n_url(post.path) %>" tabindex="-1" aria-hidden="true"><span>↗</span></a>
+  </article>
+  <% }) %>
+  <% if (!homePosts.length) { %><p class="studio-empty"><%= midnight_text('labels.no_posts', 'No Posts Yet') %></p><% } %>
   </div>
-  <div class="topic-grid">
-    <% series.slice(0, 3).forEach((item) => { %>
-      <article>
-        <h3><a href="<%- seriesUrl(item) %>"><%= item.label || item.name %></a></h3>
-        <p><%= item.description || configText('labels.series_description', '') %></p>
-        <small><%= item.count %> <%= configText('labels.posts', 'Posts') %> · <%= configText('labels.latest', 'Latest') %></small>
-      </article>
-    <% }) %>
-  </div>
-</section>
-
+</div></section>
+<% if (topics.length) { %>
+<section class="studio-topics" id="studio-topics" aria-labelledby="studio-topics-title"><div class="studio-container"><div class="studio-section-heading"><div><span class="studio-section-index" aria-hidden="true">02 /</span><h2 id="studio-topics-title"><%= english ? 'Follow a thread' : '沿着问题，继续探索' %></h2></div><span class="studio-topics__note"><%= english ? 'Notes across the software lifecycle' : '从需求到运行的工程实践' %></span></div><div class="studio-topic-list"><% topics.forEach((item,index) => { %><a href="<%- collectionHref(item) %>"><span class="studio-topic-index" aria-hidden="true">0<%= index+1 %></span><span><%= midnight_value(item.label, item.name) %></span><span aria-hidden="true">↗</span></a><% }) %></div></div></section>
 <% } %>
