@@ -32,6 +32,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Build example for rendering checks
+        run: |
+          npm ci --prefix example-site
+          npm run build --prefix example-site
+
       - name: Verify tag matches package version
         if: github.event_name == 'push'
         run: |
@@ -44,12 +49,16 @@ jobs:
 
       - name: Run release checks
         run: |
+          npm run lint:a11y
+          npm run lint:example:output
+          npm run lint:statistics
           npm run lint:structure
           npm run lint:config-content
           npm run lint:comments
           npm run lint:analytics
           npm run lint:model-session
           npm run lint:newsletter
+          npm run lint:metrics
           npm run lint:excerpt
           npm pack --dry-run
 

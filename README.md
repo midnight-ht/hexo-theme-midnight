@@ -181,3 +181,11 @@ The release workflow runs package-safe checks only. Checks that require a genera
 ## License
 
 MIT
+
+## Appearance in 0.2.0
+
+Choose `appearance.skin: ocean`, `jade`, or `violet`. Each palette supports light and dark modes. Set `appearance.default_scheme: system` to follow the operating system. Desktop navigation and the mobile menu let readers choose their appearance and palette; preferences persist across navigation and reloads.
+
+The old global `appearance.accent` override is deprecated and no longer applied. Use the built-in palettes or configure `accent_light` and `accent_dark` separately with six-digit hex colors and verify contrast for your custom colors.
+
+Optional statistics, search, comments, subscriptions, and AI modules only render when their required configuration is present. Sponsored placements require explicit opt-in. Article statistics default to hidden; the endpoint contract and configuration are documented in the Chinese README.

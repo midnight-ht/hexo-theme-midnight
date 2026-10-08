@@ -41,29 +41,24 @@
   }
   function themeToggleMarkup(extraClass) {
   %>
-    <button
-      class="theme-toggle <%= extraClass || '' %>"
-      type="button"
-      role="switch"
-      aria-checked="false"
-      data-theme-toggle
-      data-label-switch-light="<%= midnight_text('labels.switch_to_light', 'Switch to light theme') %>"
-      data-label-switch-dark="<%= midnight_text('labels.switch_to_dark', 'Switch to dark theme') %>"
-      aria-label="<%= midnight_text('labels.switch_to_dark', 'Switch to dark theme') %>"
-    >
-      <span class="theme-toggle__icon theme-toggle__icon--sun" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="4"/>
-          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
-        </svg>
-      </span>
-      <span class="theme-toggle__icon theme-toggle__icon--moon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-      </span>
-      <span class="theme-toggle__thumb" aria-hidden="true"></span>
-    </button>
+    <div class="appearance-controls">
+      <label>
+        <span class="sr-only"><%= midnight_text('labels.color_scheme', 'Appearance') %></span>
+        <select data-scheme-select aria-label="<%= midnight_text('labels.color_scheme', 'Appearance') %>">
+          <option value="system"><%= midnight_text('labels.scheme_system', 'System') %></option>
+          <option value="light"><%= midnight_text('labels.light', 'Light') %></option>
+          <option value="dark"><%= midnight_text('labels.dark', 'Dark') %></option>
+        </select>
+      </label>
+      <label>
+        <span class="sr-only"><%= midnight_text('labels.skin', 'Palette') %></span>
+        <select data-skin-select aria-label="<%= midnight_text('labels.skin', 'Palette') %>">
+          <option value="ocean"><%= midnight_text('labels.skin_ocean', 'Ocean') %></option>
+          <option value="jade"><%= midnight_text('labels.skin_jade', 'Jade') %></option>
+          <option value="violet"><%= midnight_text('labels.skin_violet', 'Violet') %></option>
+        </select>
+      </label>
+    </div>
   <%
   }
   function languageSelectMarkup(extraClass) {
@@ -125,9 +120,11 @@
       <% }) %>
     </nav>
 
-    <form class="site-search" action="<%- midnight_i18n_url('/search/') %>" role="search">
+    <% if (midnight_config('search.enabled', false) === true && String(midnight_config('search.action', '')).trim()) { %>
+<form class="site-search" action="<%- midnight_i18n_url(midnight_config('search.action', '')) %>" role="search">
       <input type="search" name="q" placeholder="<%= midnight_text('labels.search_placeholder', 'Search') %>" aria-label="<%= midnight_text('labels.search', 'Search') %>">
     </form>
+<% } %>
 
     <% if (headerNewsletterAction) { %>
       <a class="subscribe-button" href="<%- midnight_i18n_url('/newsletter/') %>"><%= midnight_text('labels.subscribe', 'Subscribe') %></a>
@@ -150,9 +147,11 @@
       <strong><%= midnight_text('labels.breaking', 'Breaking') %></strong>
       <span><%= midnight_text('labels.utility_message', '') %></span>
     </div>
-    <form class="mobile-menu__search" action="<%- midnight_i18n_url('/search/') %>" role="search">
+    <% if (midnight_config('search.enabled', false) === true && String(midnight_config('search.action', '')).trim()) { %>
+<form class="mobile-menu__search" action="<%- midnight_i18n_url(midnight_config('search.action', '')) %>" role="search">
       <input type="search" name="q" placeholder="<%= midnight_text('labels.search_placeholder', 'Search') %>" aria-label="<%= midnight_text('labels.search', 'Search') %>">
     </form>
+<% } %>
     <nav class="mobile-menu__nav" aria-label="<%= midnight_text('labels.primary_navigation', 'Primary') %>">
       <% primaryNav.forEach((item) => { const active = isNavActive(item); %>
         <a class="<%= active ? 'is-active' : '' %>" href="<%- navUrl(item) %>"><%= navLabel(item) %></a>

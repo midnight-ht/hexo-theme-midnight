@@ -169,40 +169,40 @@
     <meta name="twitter:card" content="<%= seoCfg.twitter_card || 'summary_large_image' %>">
   <% } %>
   <meta name="theme-color" content="#080b10">
-  <% const defaultScheme = theme.appearance && theme.appearance.default_scheme === 'light' ? 'light' : 'dark'; %>
+  <%
+  const appearanceCfg = theme.appearance || {};
+  const defaultScheme = ['light', 'dark', 'system'].includes(appearanceCfg.default_scheme) ? appearanceCfg.default_scheme : 'system';
+  const defaultSkin = ['ocean', 'jade', 'violet'].includes(appearanceCfg.skin) ? appearanceCfg.skin : 'ocean';
+  const defaultBackground = ['default', 'clean', 'editorial', 'high-contrast'].includes(appearanceCfg.background) ? appearanceCfg.background : 'default';
+  %>
   <script>
     (function () {
-      var key = 'midnight-theme';
-      var defaultScheme = '<%- defaultScheme %>';
-      function valid(value) {
-        return value === 'light' || value === 'dark' ? value : '';
+      var root = document.documentElement;
+      function read(key, allowed) {
+        var value;
+        try { value = window.localStorage.getItem(key); if (allowed.indexOf(value) >= 0) return value; } catch (e) {}
+        try { value = window.sessionStorage.getItem(key); if (allowed.indexOf(value) >= 0) return value; } catch (e) {}
+        var cookie = document.cookie.split(';').map(function (part) { return part.trim(); }).filter(function (part) { return part.indexOf(key + '=') === 0; })[0];
+        value = cookie ? cookie.slice(key.length + 1) : '';
+        return allowed.indexOf(value) >= 0 ? value : '';
       }
-      function safeGet(storage) {
-        try { return valid(storage && storage.getItem(key)); } catch (e) { return ''; }
-      }
-      function cookieTheme() {
-        var match = document.cookie.match(/(?:^|;\s*)midnight-theme=(light|dark)(?:;|$)/);
-        return match ? match[1] : '';
-      }
-      function windowNameTheme() {
-        try {
-          var match = String(window.name || '').match(/(?:^|;)midnight-theme=(light|dark)(?:;|$)/);
-          return match ? match[1] : '';
-        } catch (e) {
-          return '';
-        }
-      }
-      var theme = safeGet(window.localStorage) || safeGet(window.sessionStorage) || cookieTheme() || windowNameTheme();
-      if (!theme) theme = valid(defaultScheme) || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      document.documentElement.dataset.defaultScheme = defaultScheme;
-      document.documentElement.dataset.theme = theme;
-      document.documentElement.dataset.background = '<%- (theme.appearance && theme.appearance.background) || 'default' %>';
-      document.documentElement.classList.add(theme === 'dark' ? 'theme-dark' : 'theme-light');
+      var scheme = read('midnight-theme', ['light', 'dark', 'system']) || '<%- defaultScheme %>';
+      root.dataset.defaultScheme = '<%- defaultScheme %>';
+      root.dataset.defaultSkin = '<%- defaultSkin %>';
+      root.dataset.scheme = scheme;
+      root.dataset.skin = read('midnight-skin', ['ocean', 'jade', 'violet']) || '<%- defaultSkin %>';
+      root.dataset.theme = scheme === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : scheme;
+      root.dataset.background = '<%- defaultBackground %>';
+      root.classList.add(root.dataset.theme === 'dark' ? 'theme-dark' : 'theme-light');
     })();
   </script>
-  <% const assetVersion = theme.asset_version || theme.version || '20260519-header-controls'; %>
+  <% const assetVersion = theme.asset_version || theme.version || '0.2.0'; %>
   <link rel="stylesheet" href="<%- url_for('/css/main.css') %>?v=<%- assetVersion %>">
-  <% if (theme.appearance && theme.appearance.accent) { %>
-    <style>:root{--accent:<%- theme.appearance.accent %>;}</style>
+  <% const safeAccent = value => /^#[0-9a-f]{6}$/i.test(String(value || '')) ? value : ''; %>
+  <% if (safeAccent(appearanceCfg.accent_light) || safeAccent(appearanceCfg.accent_dark)) { %>
+    <style>
+      <% if (safeAccent(appearanceCfg.accent_light)) { %>:root[data-theme="light"]{--accent:<%= safeAccent(appearanceCfg.accent_light) %>;}<% } %>
+      <% if (safeAccent(appearanceCfg.accent_dark)) { %>:root[data-theme="dark"]{--accent:<%= safeAccent(appearanceCfg.accent_dark) %>;}<% } %>
+    </style>
   <% } %>
 </head>

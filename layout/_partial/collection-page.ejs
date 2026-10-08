@@ -95,39 +95,6 @@ function postDateValue(post) {
   return Number.isFinite(value) ? value : 0;
 }
 
-function clickCount(post) {
-  const values = [
-    post.clicks,
-    post.click,
-    post.click_count,
-    post.clickCount,
-    post.views,
-    post.view,
-    post.views_count,
-    post.view_count,
-    post.viewCount,
-    post.pageviews,
-    post.page_views,
-    post.pageViews,
-    post.pv,
-    post.visits,
-    post.reads,
-    post.read_count,
-    post.readCount,
-    post.popularity,
-    post.stats && post.stats.clicks,
-    post.stats && post.stats.views
-  ];
-  const value = values.map(Number).find((item) => Number.isFinite(item));
-  return Number.isFinite(value) ? value : 0;
-}
-
-function commentCount(post) {
-  const values = [post.comments, post.comment_count, post.commentCount, post.stats && post.stats.comments];
-  const value = values.map(Number).find((item) => Number.isFinite(item));
-  return Number.isFinite(value) ? value : 0;
-}
-
 function collectRelatedTerms() {
   const map = {};
   ['tags', 'categories'].forEach((field) => {
@@ -199,8 +166,8 @@ const mapItems = collectRelatedTerms();
               <% } %>
               <footer class="channel-lead__meta">
                 <time datetime="<%= date_xml(featured.date) %>"><%= date(featured.date, 'YYYY-MM-DD') %></time>
-                <em><%= midnight_text('labels.read_count', 'Reads') %> <%= clickCount(featured) || '-' %></em>
-                <em><%= midnight_text('labels.comments_count', 'Comments') %> <%= commentCount(featured) || '-' %></em>
+                <%- partial('_partial/metric', { item: featured, kind: 'reads', metricTag: 'em' }) %>
+                <%- partial('_partial/metric', { item: featured, kind: 'comments', metricTag: 'em' }) %>
               </footer>
             </div>
           </article>

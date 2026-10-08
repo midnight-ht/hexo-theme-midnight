@@ -28,8 +28,8 @@
     <span>&copy; <%= date(new Date(), 'YYYY') %> <%= config.author || config.title || 'Midnight' %></span>
     <% if (footerStatsEnabled && (footerStatsCfg.source || 'busuanzi') === 'busuanzi') { %>
       <span class="site-footer__stats">
-        <span><%= footerPvFormat.split('{}')[0] %><span id="busuanzi_value_site_pv"></span><%= footerPvFormat.split('{}')[1] || '' %></span>
-        <span><%= footerUvFormat.split('{}')[0] %><span id="busuanzi_value_site_uv"></span><%= footerUvFormat.split('{}')[1] || '' %></span>
+        <span id="busuanzi_container_site_pv" style="display:none"><%= footerPvFormat.split('{}')[0] %><span id="busuanzi_value_site_pv"></span><%= footerPvFormat.split('{}')[1] || '' %></span>
+        <span id="busuanzi_container_site_uv" style="display:none"><%= footerUvFormat.split('{}')[0] %><span id="busuanzi_value_site_uv"></span><%= footerUvFormat.split('{}')[1] || '' %></span>
       </span>
     <% } %>
   </div>
@@ -54,7 +54,9 @@
       <% if (footerFeedEnabled) { %>
         <a href="<%- url_for('/' + footerFeedPath.replace(/^\/+/, '')) %>"><%= __('rss') %></a>
       <% } %>
+      <% if (footerSitemapCfg.enabled === true) { %>
       <a href="<%- url_for('/' + footerSitemapPath.replace(/^\/+/, '')) %>"><%= __('sitemap') %></a>
+      <% } %>
     </div>
     <div>
       <strong><%= midnight_text('labels.footer_meta', 'Meta') %></strong>

@@ -106,8 +106,8 @@ function categoryUrl(label) {
         <a href="<%- midnight_i18n_url('/about/') %>"><%= configText('labels.follow', 'Follow') %></a>
       </div>
       <div class="post-metrics">
-        <span><%= configText('labels.read_count', 'Reads') %> <%= Math.max(1, Math.round(wordCount / 100)) %>.8k</span>
-        <span><%= configText('labels.comments_count', 'Comments') %> 126</span>
+        <%- partial('_partial/metric', { item: page, kind: 'reads', metricTag: 'span' }) %>
+        <%- partial('_partial/metric', { item: page, kind: 'comments', metricTag: 'span' }) %>
         <small><%= configText('labels.updated', 'Updated') %> <%= date(updatedDate, 'YYYY-MM-DD') %> · <%= configText('labels.estimated_read', 'Estimated read') %> <%= readMinutes %> <%= configText('labels.minutes', 'min') %></small>
       </div>
     </div>
@@ -123,11 +123,13 @@ function categoryUrl(label) {
     <main class="post-body">
       <p class="post-body__label"><%= configText('labels.article', 'Article') %></p>
 
-      <section class="post-sponsored" aria-label="<%= configText('labels.sponsored', 'Sponsored') %>">
+      <% if (midnight_config('sponsored.enabled', false) === true) { %>
+<section class="post-sponsored" aria-label="<%= configText('labels.sponsored', 'Sponsored') %>">
         <span><%= configText('labels.sponsored', 'Sponsored') %></span>
         <strong><%= configText('post.sponsor.title', 'Post top sponsored slot') %></strong>
         <small><%= configText('post.sponsor.description', '') %></small>
       </section>
+<% } %>
 
       <div class="article-content">
         <%- articleContent %>
@@ -188,11 +190,13 @@ function categoryUrl(label) {
         <% } %>
       </section>
 
-      <section class="sponsor sponsor--side" aria-label="<%= configText('labels.sponsored', 'Sponsored') %>">
+      <% if (midnight_config('sponsored.enabled', false) === true) { %>
+<section class="sponsor sponsor--side" aria-label="<%= configText('labels.sponsored', 'Sponsored') %>">
         <span><%= configText('labels.sponsored', 'Sponsored') %></span>
         <strong><%= configText('home.sponsors.side.title', 'Sidebar ad slot') %></strong>
         <small>292x190</small>
       </section>
+<% } %>
 
       <section class="sidebar-panel author-panel">
         <h2><%= configText('labels.author', 'Author') %></h2>

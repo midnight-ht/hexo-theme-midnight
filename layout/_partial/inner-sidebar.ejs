@@ -29,30 +29,7 @@ function postDateValue(post) {
 }
 
 function clickCount(post) {
-  const values = [
-    post.clicks,
-    post.click,
-    post.click_count,
-    post.clickCount,
-    post.views,
-    post.view,
-    post.views_count,
-    post.view_count,
-    post.viewCount,
-    post.pageviews,
-    post.page_views,
-    post.pageViews,
-    post.pv,
-    post.visits,
-    post.reads,
-    post.read_count,
-    post.readCount,
-    post.popularity,
-    post.stats && post.stats.clicks,
-    post.stats && post.stats.views
-  ];
-  const value = values.map(Number).find((item) => Number.isFinite(item));
-  return Number.isFinite(value) ? value : 0;
+  return midnight_metric(post, 'reads');
 }
 
 const realPopularReads = posts
@@ -73,7 +50,7 @@ function seriesHref(entry) {
 }
 %>
 
-<% if (includeSponsored) { %>
+<% if (includeSponsored && midnight_config('sponsored.enabled', false) === true) { %>
   <section class="sidebar-panel sidebar-panel--ad" aria-label="<%= midnight_text('labels.sponsored', 'Sponsored') %>">
     <span class="sidebar-panel__badge"><%= midnight_text('labels.sponsored', 'Sponsored') %></span>
     <strong><%= midnight_text('labels.sidebar_ad_label', 'Channel Sponsored Slot') %></strong>
@@ -92,7 +69,7 @@ function seriesHref(entry) {
           <div>
             <% if (item.path) { %>
               <strong><a href="<%- midnight_i18n_url(item.path) %>"><%= item.title %></a></strong>
-              <small><%= midnight_text('labels.read_count', 'Reads') %> <%= clickCount(item) || '-' %></small>
+              <%- partial('_partial/metric', { item: item, kind: 'reads', metricTag: 'small' }) %>
             <% } else { %>
               <strong><%= midnight_value(item.title, '') %></strong>
               <small><%= midnight_value(item.meta, '') %></small>

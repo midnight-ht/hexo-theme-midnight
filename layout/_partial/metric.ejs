@@ -1,0 +1,13 @@
+<%
+const statistics = midnight_config('article_statistics', {});
+const metricKind = kind === 'comments' ? 'comments' : 'reads';
+const metricEndpoint = String(statistics[metricKind + '_endpoint'] || '').trim();
+const metricManual = statistics.provider === 'frontmatter';
+const metricValue = metricManual ? midnight_metric(item, metricKind) : null;
+const metricPath = item.path && item.path !== '#' ? midnight_i18n_url(item.path) : '';
+const metricVisible = statistics.enabled === true && (metricManual ? metricValue !== null : statistics.provider === 'endpoint' && metricEndpoint && metricPath);
+const tag = ['span', 'small', 'em'].includes(metricTag) ? metricTag : 'span';
+%>
+<% if (metricVisible) { %>
+<<%= tag %><% if (!metricManual) { %> hidden data-article-metric="<%= metricKind %>" data-metric-endpoint="<%= metricEndpoint %>" data-metric-path="<%= metricPath %>" data-metric-record="<%= metricKind === 'reads' && statistics.record_reads === true && item === page && page.layout === 'post' ? 'true' : 'false' %>"<% } %>><%= midnight_text(metricKind === 'reads' ? 'labels.read_count' : 'labels.comments_count', metricKind === 'reads' ? 'Reads' : 'Comments') %> <span data-metric-value><%= metricManual ? metricValue : '' %></span></<%= tag %>>
+<% } %>

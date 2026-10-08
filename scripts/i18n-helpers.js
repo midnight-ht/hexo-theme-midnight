@@ -629,3 +629,24 @@ hexo.extend.helper.register('midnight_value', function midnightValue(value, fall
 hexo.extend.helper.register('midnight_excerpt', function midnightExcerpt(post, limit = 150) {
   return preferredLead(post, this, limit);
 });
+
+// Missing metrics stay distinct from a measured zero. Hexo's comments boolean
+// controls comment availability and is not a comment count.
+function midnightMetric(post, kind) {
+  post = post || {};
+  const stats = post.stats || {};
+  const values = kind === 'comments'
+    ? [post.comment_count, post.commentCount, stats.comments, post.comments]
+    : [post.clicks, post.click, post.click_count, post.clickCount, post.views, post.view,
+      post.views_count, post.view_count, post.viewCount, post.pageviews, post.page_views,
+      post.pageViews, post.pv, post.visits, post.reads, post.read_count, post.readCount,
+      post.popularity, stats.clicks, stats.views];
+  for (const raw of values) {
+    if (typeof raw !== 'number' && typeof raw !== 'string') continue;
+    if (typeof raw === 'string' && !raw.trim()) continue;
+    const value = Number(raw);
+    if (Number.isSafeInteger(value) && value >= 0) return value;
+  }
+  return null;
+}
+hexo.extend.helper.register('midnight_metric', midnightMetric);

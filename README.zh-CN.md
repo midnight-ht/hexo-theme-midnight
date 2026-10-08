@@ -59,7 +59,8 @@ appearance:
   logo: ""
   logo_text: Midnight
   nick: Midnight
-  default_scheme: light
+  default_scheme: system
+  skin: ocean
 
 i18n:
   default_lang: zh-CN
@@ -76,6 +77,14 @@ comments:
   enabled: false
   provider: giscus
 ```
+
+## 配色与换肤
+
+`appearance.skin` 支持 `ocean`（海蓝）、`jade`（松绿）、`violet`（鸢紫）。每套皮肤都有独立的浅色和深色链接色、前景色，辅助文字与代码行号也使用可读性更高的色值。
+
+`appearance.default_scheme` 支持 `system`、`light`、`dark`。读者可在桌面顶栏或手机菜单选择外观与配色；选择会保存在本地和 Cookie 中，刷新、翻页后保留。“跟随系统”会响应系统外观变化。脚本初始化在样式加载前恢复选择，减少闪烁。
+
+从 0.1.x 升级时，移除旧的 `appearance.accent` 全局覆盖，改用内置皮肤。需要自定义时分别配置 `appearance.accent_light`、`appearance.accent_dark`（六位十六进制色值），并自行验证文字和按钮的对比度；主题的自动对比度检查覆盖内置配色。
 
 ## 多语言文章
 
@@ -141,6 +150,28 @@ nav:
 
 `style` 支持 `underline`、`text`、`pill`、`ghost`、`outline` 和 `solid`。内部路径会经过 i18n 路由辅助函数处理，因此标签链接可以解析为 `/zh-CN/tags/AI-Agent/` 这类路由。
 
+## 功能模块与自动统计规则
+
+可选模块遵循“配置完整才展示”：评论服务缺少必要配置时隐藏整个评论区；AI 会话需要启用且提供 endpoint；订阅需要表单 action；搜索需要 `search.enabled: true` 和有效 action；赞助位需要明确设置 `sponsored.enabled: true`。赞助内容须自行替换为真实合作信息。统计默认关闭，不显示占位数字。
+
+文章自动统计示例（接口需由站点自行提供）：
+
+```yaml
+article_statistics:
+  enabled: true
+  provider: endpoint
+  reads_endpoint: /api/article-reads
+  comments_endpoint: /api/article-comments
+  record_reads: true
+```
+
+- 查询：`GET endpoint?path=/文章路径/`，返回 JSON 数字字段 `reads` 或 `comments`，例如 `{"reads":120}`。评论接口必须使用与评论组件一致的文章标识，返回真实评论总数，并明确回复和审核中评论的计数口径。
+- 记录：仅当 `record_reads: true` 时，在文章页对阅读接口发送一次 `POST endpoint?path=...`，JSON 请求体为 `{"path":"/文章路径/"}`；返回记录后的 `{"reads":121}`。列表页只查询，不增加阅读量。
+- 服务端负责持久化、访问去重、限流和机器人过滤；这是浏览次数（PV），不代表阅读人数或读完人数。主题不提供统计后端，也不从前端调用中推断唯一读者。
+- 未配置某项 endpoint，就不输出该项统计。请求超时、失败、数据缺失或不是非负整数时保持隐藏；成功返回 `0` 才显示零。跨域接口需允许站点来源及相应 GET/POST 请求，服务商密钥留在服务端。
+- 自动模式不使用 front matter 数字兜底。如需展示手工历史快照，显式选择 `provider: frontmatter`，使用 `views`、`comment_count` 或 `stats.views`、`stats.comments`；此模式不是自动统计。`comments: true/false` 仅作为评论开关。
+- 页脚 Busuanzi 统计仍由 `footer.statistics` 配置控制，查询成功前隐藏；与文章接口独立，不应重复当作同一来源汇总。
+
 ## 模型会话
 
 主题只提供浏览器端 UI。请将 `model_session.endpoint` 指向你自己的服务端代理，模型服务商 API Key 必须留在服务端。
@@ -161,6 +192,12 @@ npm run lint:model-session
 
 ```bash
 npm pack --dry-run
+```
+
+自动统计集成检查（需先安装 `example-site` 依赖）：
+
+```bash
+npm run lint:statistics
 ```
 
 ## npm 发布

@@ -29,8 +29,7 @@ function fail(message) {
   'https://utteranc.es/client.js',
   'repo="<%- utterancesConfig.repo %>"',
   'issue-term="<%- utterancesConfig.issue_term || utterancesConfig.issueTerm || \'pathname\' %>"',
-  'class="empty-state"',
-  'comments_unavailable',
+  'commentsEnabled && commentsReady',
   'comments.enabled',
   'page.comments !== false'
 ].forEach((needle) => {

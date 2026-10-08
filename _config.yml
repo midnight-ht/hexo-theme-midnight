@@ -10,8 +10,11 @@ appearance:
   logo: ""
   logo_text: Midnight
   nick: Midnight
-  accent: "#4df2c8"
-  default_scheme: dark
+  skin: ocean # ocean / jade / violet
+  accent: "" # Deprecated; use accent_light and accent_dark
+  accent_light: ""
+  accent_dark: ""
+  default_scheme: system # system / light / dark
   background: default
 
 nav:
@@ -68,6 +71,21 @@ i18n:
     - en
   article_lang_field: lang
   translation_key_field: translation_key
+
+# Optional modules render only when enabled and configured.
+article_statistics:
+  enabled: false
+  provider: endpoint # endpoint (automatic) or frontmatter (manual snapshot)
+  reads_endpoint: ""
+  comments_endpoint: ""
+  record_reads: false # POST on article visits; GET everywhere else
+
+search:
+  enabled: false
+  action: "" # URL of a working search page/service
+
+sponsored:
+  enabled: false # Explicitly opt in to configured sponsored placements
 
 model_session:
   enabled: true
@@ -159,6 +177,24 @@ footer:
       en: "{} visitors"
 
 labels:
+  color_scheme:
+    zh-CN: 外观
+    en: Appearance
+  scheme_system:
+    zh-CN: 跟随系统
+    en: System
+  skin:
+    zh-CN: 配色
+    en: Palette
+  skin_ocean:
+    zh-CN: 海蓝
+    en: Ocean
+  skin_jade:
+    zh-CN: 松绿
+    en: Jade
+  skin_violet:
+    zh-CN: 鸢紫
+    en: Violet
   breaking:
     zh-CN: 快讯
     en: Breaking

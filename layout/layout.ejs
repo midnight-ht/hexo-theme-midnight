@@ -18,10 +18,13 @@
       </main>
       <%- partial('_partial/footer') %>
     </div>
-    <% const layoutAssetVersion = theme.asset_version || theme.version || '20260519-header-controls'; %>
+    <% const layoutAssetVersion = theme.asset_version || theme.version || '0.2.0'; %>
     <script src="<%- url_for('/js/main.js') %>?v=<%- layoutAssetVersion %>" defer></script>
     <% if (theme.model_session && theme.model_session.enabled && String(theme.model_session.endpoint || '').trim()) { %>
       <script src="<%- url_for('/js/model-session.js') %>?v=<%- layoutAssetVersion %>" defer></script>
+    <% } %>
+    <% if (midnight_config('article_statistics.enabled', false) === true && midnight_config('article_statistics.provider', '') === 'endpoint' && (midnight_config('article_statistics.reads_endpoint', '') || midnight_config('article_statistics.comments_endpoint', ''))) { %>
+      <script src="<%- url_for('/js/statistics.js') %>" defer></script>
     <% } %>
     <%- partial('_partial/analytics') %>
   </body>

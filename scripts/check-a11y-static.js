@@ -41,14 +41,38 @@ function contrast(foreground, background) {
   return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
 }
 
-[
-  ['#111827', '#f6f8fc', 'light text on background'],
-  ['#edf7ff', '#080b10', 'dark text on background'],
-  ['#030712', '#ffffff', 'high-contrast light text'],
-  ['#ffffff', '#000000', 'high-contrast dark text']
-].forEach(([fg, bg, label]) => {
-  if (contrast(fg, bg) < 4.5) fail(`Insufficient contrast for ${label}`);
-});
+// Read the actual CSS tokens; a copied list of old hex values cannot detect regressions.
+function palette(mode, skin, background) {
+  const result = {};
+  for (const match of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const applies = match[1].split(',').some(raw => {
+      const selector = raw.trim();
+      if (!/^:root(?:\.[\w-]+|\[[^\]]+\])*$/.test(selector)) return false;
+      if (selector.includes('.theme-dark') && mode !== 'dark') return false;
+      if (selector.includes('.theme-light') && mode !== 'light') return false;
+      return [...selector.matchAll(/\[data-(theme|skin|background)="([^"]+)"\]/g)]
+        .every(([, key, value]) => ({ theme: mode, skin, background })[key] === value);
+    });
+    if (applies) for (const [, key, value] of match[2].matchAll(/(--[\w-]+):\s*(#[a-f0-9]{6})\s*;/gi)) result[key] = value;
+  }
+  return result;
+}
+for (const mode of ['light', 'dark']) {
+  for (const skin of ['ocean', 'jade', 'violet']) {
+    for (const background of ['default', 'clean', 'editorial', 'high-contrast']) {
+      const tokens = palette(mode, skin, background);
+      const pairs = ['--bg', '--surface', '--surface-soft', '--side'].flatMap(bg =>
+        ['--text', '--sub', '--muted', '--accent'].map(fg => [fg, bg]));
+      pairs.push(['--on-accent', '--accent'], ['--badge-on', '--badge'],
+        ['--code-text', '--code-bg'], ['--code-muted', '--code-panel'], ['--footer-sub', '--footer']);
+      for (const [fg, bg] of pairs) {
+        if (!tokens[fg] || !tokens[bg]) fail(`Missing token: ${fg} / ${bg}`);
+        const ratio = contrast(tokens[fg], tokens[bg]);
+        if (ratio < 4.5) fail(`${mode}/${skin}/${background}: ${fg} on ${bg} contrast ${ratio.toFixed(2)} < 4.5`);
+      }
+    }
+  }
+}
 
 [
   '@media (max-width: 1120px)',
@@ -73,7 +97,6 @@ function contrast(foreground, background) {
     '<main class="site-main" id="content">',
     '<nav',
     'aria-label=',
-    'role="search"',
     'data-mobile-menu'
   ].forEach((needle) => {
     if (!html.includes(needle)) fail(`${file} is missing ${needle}`);

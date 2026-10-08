@@ -79,30 +79,7 @@ function isEditorPick(post) {
 }
 
 function clickCount(post) {
-  const values = [
-    post.clicks,
-    post.click,
-    post.click_count,
-    post.clickCount,
-    post.views,
-    post.view,
-    post.views_count,
-    post.view_count,
-    post.viewCount,
-    post.pageviews,
-    post.page_views,
-    post.pageViews,
-    post.pv,
-    post.visits,
-    post.reads,
-    post.read_count,
-    post.readCount,
-    post.popularity,
-    post.stats && post.stats.clicks,
-    post.stats && post.stats.views
-  ];
-  const value = values.map(Number).find((item) => Number.isFinite(item));
-  return Number.isFinite(value) ? value : 0;
+  return midnight_metric(post, 'reads');
 }
 
 function postDateValue(post) {
@@ -246,11 +223,13 @@ function configText(path, fallback) {
 }
 %>
 
+<% if (midnight_config('sponsored.enabled', false) === true) { %>
 <section class="sponsor sponsor--top" aria-label="<%= configText('labels.sponsored', 'Sponsored') %>">
   <span><%= configText('labels.sponsored', 'Sponsored') %></span>
   <strong><%= configText('home.sponsors.top.title', 'Top brand banner') %></strong>
   <small><%= configText('home.sponsors.top.description', '') %></small>
 </section>
+<% } %>
 
 <section class="home-hero" aria-labelledby="home-featured">
   <div class="section-kicker">
@@ -272,8 +251,8 @@ function configText(path, fallback) {
       <span class="avatar"><%= authorInitial %></span>
       <span><strong><%= authorName %></strong><small><%= configText('labels.editor_recommend', 'Editor Pick') %></small></span>
       <time datetime="<%= date_xml(feature.date) %>"><%= date(feature.date, 'YYYY-MM-DD') %></time>
-      <em><%= configText('labels.read_count', 'Reads') %> 42.8k</em>
-      <em><%= configText('labels.comments_count', 'Comments') %> 126</em>
+      <%- partial('_partial/metric', { item: feature, kind: 'reads', metricTag: 'em' }) %>
+      <%- partial('_partial/metric', { item: feature, kind: 'comments', metricTag: 'em' }) %>
     </footer>
   </article>
 
@@ -287,7 +266,7 @@ function configText(path, fallback) {
         <span class="tag tag--<%= channelClass(fallback) %>"><%= primaryTag(post, fallback) %></span>
         <h3><a href="<%- postUrl(post) %>"><%= post.title %></a></h3>
         <time datetime="<%= date_xml(post.date) %>"><%= date(post.date, 'MM-DD') %></time>
-        <p><%= configText('labels.read_count', 'Reads') %> <%= (12 - index * 1.7).toFixed(1) %>k · <%= configText('labels.editor_recommend', 'Editor Pick') %></p>
+        <p><%- partial('_partial/metric', { item: post, kind: 'reads', metricTag: 'span' }) %> <%= configText('labels.editor_recommend', 'Editor Pick') %></p>
       </article>
     <% }) %>
   </aside>
@@ -330,11 +309,13 @@ function configText(path, fallback) {
       <% }) %>
     </div>
 
-    <section class="sponsor sponsor--native" aria-label="<%= configText('labels.sponsored', 'Sponsored') %>">
+    <% if (midnight_config('sponsored.enabled', false) === true) { %>
+<section class="sponsor sponsor--native" aria-label="<%= configText('labels.sponsored', 'Sponsored') %>">
       <span><%= configText('labels.sponsored', 'Sponsored') %></span>
       <strong><%= configText('home.sponsors.native.title', 'Native sponsored slot') %></strong>
       <small><%= configText('home.sponsors.native.description', '') %></small>
     </section>
+<% } %>
 
     <div class="section-heading">
       <div class="section-heading__copy">
@@ -361,7 +342,7 @@ function configText(path, fallback) {
           </div>
           <footer class="archive-card__stats">
             <span><%= configText('labels.author', 'Author') %> <%= post.author || authorName %></span>
-            <span><%= configText('labels.read_count', 'Reads') %> <%= clickCount(post) || ((8 + index * 1.1).toFixed(1) + 'k') %></span>
+            <%- partial('_partial/metric', { item: post, kind: 'reads', metricTag: 'span' }) %>
           </footer>
         </article>
       <% }) %>
@@ -369,11 +350,13 @@ function configText(path, fallback) {
   </div>
 
   <aside class="home-sidebar">
-    <section class="sponsor sponsor--side" aria-label="<%= configText('labels.sponsored', 'Sponsored') %>">
+    <% if (midnight_config('sponsored.enabled', false) === true) { %>
+<section class="sponsor sponsor--side" aria-label="<%= configText('labels.sponsored', 'Sponsored') %>">
       <span><%= configText('labels.sponsored', 'Sponsored') %></span>
       <strong><%= configText('home.sponsors.side.title', 'Sidebar ad slot') %></strong>
       <small><%= configText('home.sponsors.side.description', '') %></small>
     </section>
+<% } %>
 
     <section class="sidebar-panel popular-panel">
       <h2><%= configText('labels.popular', 'Popular') %></h2>
@@ -383,7 +366,7 @@ function configText(path, fallback) {
           <span>0<%= index + 1 %></span>
           <div>
             <h3><a href="<%- postUrl(post) %>"><%= post.title %></a></h3>
-            <small><%= configText('labels.read_count', 'Reads') %> <%= clickCount(post) || ((18 - index * 3.2).toFixed(1) + 'k') %> · <%= date(post.date, 'MM-DD') %></small>
+            <small><%- partial('_partial/metric', { item: post, kind: 'reads', metricTag: 'span' }) %> <%= date(post.date, 'MM-DD') %></small>
           </div>
         </article>
       <% }) %>

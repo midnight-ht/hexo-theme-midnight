@@ -65,39 +65,6 @@ function collectionPath(item, fallback) {
   return item && item.path ? midnight_i18n_url(item.path) : fallback;
 }
 
-function clickCount(post) {
-  const values = [
-    post.clicks,
-    post.click,
-    post.click_count,
-    post.clickCount,
-    post.views,
-    post.view,
-    post.views_count,
-    post.view_count,
-    post.viewCount,
-    post.pageviews,
-    post.page_views,
-    post.pageViews,
-    post.pv,
-    post.visits,
-    post.reads,
-    post.read_count,
-    post.readCount,
-    post.popularity,
-    post.stats && post.stats.clicks,
-    post.stats && post.stats.views
-  ];
-  const value = values.map(Number).find((item) => Number.isFinite(item));
-  return Number.isFinite(value) ? value : 0;
-}
-
-function commentCount(post) {
-  const values = [post.comments, post.comment_count, post.commentCount, post.stats && post.stats.comments];
-  const value = values.map(Number).find((item) => Number.isFinite(item));
-  return Number.isFinite(value) ? value : 0;
-}
-
 function configText(path, fallback) {
   return midnight_text(path, fallback);
 }
@@ -201,8 +168,8 @@ const renderedArchiveYears = new Set();
                 <% } %>
               </div>
               <footer class="archive-card__stats">
-                <span><%= configText('labels.read_count', 'Reads') %> <%= clickCount(post) || '-' %></span>
-                <span><%= configText('labels.comments_count', 'Comments') %> <%= commentCount(post) || '-' %></span>
+                <%- partial('_partial/metric', { item: post, kind: 'reads', metricTag: 'span' }) %>
+                <%- partial('_partial/metric', { item: post, kind: 'comments', metricTag: 'span' }) %>
               </footer>
             </article>
           <% }) %>
