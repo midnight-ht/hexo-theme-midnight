@@ -5023,3 +5023,9 @@ button:disabled {
   .site-header .mobile-menu-toggle:focus-visible,
   .site-header .mobile-menu-toggle[aria-expanded="true"] { color: var(--accent); background: var(--surface-soft); }
 }
+
+@media (max-width: 1120px) {
+  .site-header .mobile-menu__close { color: var(--text); background: var(--surface); }
+  .site-header .mobile-menu__close:hover,
+  .site-header .mobile-menu__close:focus-visible { color: var(--accent); background: var(--surface-soft); }
+}

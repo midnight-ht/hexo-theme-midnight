@@ -196,7 +196,7 @@
       root.classList.add(root.dataset.theme === 'dark' ? 'theme-dark' : 'theme-light');
     })();
   </script>
-  <% const assetVersion = theme.asset_version || theme.version || '0.2.1'; %>
+  <% const assetVersion = theme.asset_version || theme.version || '0.2.2'; %>
   <link rel="stylesheet" href="<%- url_for('/css/main.css') %>?v=<%- assetVersion %>">
   <% const safeAccent = value => /^#[0-9a-f]{6}$/i.test(String(value || '')) ? value : ''; %>
   <% if (safeAccent(appearanceCfg.accent_light) || safeAccent(appearanceCfg.accent_dark)) { %>
