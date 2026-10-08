@@ -73,6 +73,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
+      - name: Attach installable release package
+        if: github.event_name == 'push'
+        run: |
+          npm pack
+          gh release upload "$GITHUB_REF_NAME" hexo-theme-midnight-*.tgz --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Publish to npm
         run: npm publish --access public
         env:

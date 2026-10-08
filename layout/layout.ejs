@@ -18,7 +18,7 @@
       </main>
       <%- partial('_partial/footer') %>
     </div>
-    <% const layoutAssetVersion = theme.asset_version || theme.version || '0.2.0'; %>
+    <% const layoutAssetVersion = theme.asset_version || theme.version || '0.2.1'; %>
     <script src="<%- url_for('/js/main.js') %>?v=<%- layoutAssetVersion %>" defer></script>
     <% if (theme.model_session && theme.model_session.enabled && String(theme.model_session.endpoint || '').trim()) { %>
       <script src="<%- url_for('/js/model-session.js') %>?v=<%- layoutAssetVersion %>" defer></script>

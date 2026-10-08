@@ -5016,3 +5016,10 @@ button:disabled {
 .post-body .article-content pre .title,
 .post-body .article-content pre .built_in { color: #93c5fd; }
 @media print { .appearance-controls { display: none; } }
+
+@media (max-width: 1120px) {
+  .site-header .mobile-menu-toggle { color: var(--text); background: var(--surface); }
+  .site-header .mobile-menu-toggle:hover,
+  .site-header .mobile-menu-toggle:focus-visible,
+  .site-header .mobile-menu-toggle[aria-expanded="true"] { color: var(--accent); background: var(--surface-soft); }
+}
