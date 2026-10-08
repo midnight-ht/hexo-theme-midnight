@@ -26,7 +26,7 @@ const newsletterFormAction = String(newsletter.form && newsletter.form.action ||
   </header>
 
   <section class="collection-layout inner-layout-v2 commercial-layout">
-    <main class="collection-list commercial-main">
+    <div class="collection-list commercial-main">
       <% if (benefits.length) { %>
         <section class="channel-section commercial-section">
           <div class="section-heading">
@@ -52,7 +52,7 @@ const newsletterFormAction = String(newsletter.form && newsletter.form.action ||
           </div>
         </section>
       <% } %>
-    </main>
+    </div>
 
     <aside class="collection-sidebar inner-sidebar commercial-sidebar">
       <% if (editions.length) { %>

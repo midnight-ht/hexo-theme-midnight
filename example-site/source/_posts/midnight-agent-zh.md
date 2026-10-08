@@ -11,6 +11,10 @@ tags:
 categories:
   - Engineering
 description: 用一篇示例文章验证 Midnight 的中文文章、标签、目录和模型会话入口。
+sources:
+  - title: Hexo documentation
+    url: https://hexo.io/docs/
+
 ---
 
 ## 为什么需要助读

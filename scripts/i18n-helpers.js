@@ -243,8 +243,19 @@ hexo.extend.helper.register('midnight_translations', function midnightTranslatio
     .sort((a, b) => a.lang.localeCompare(b.lang));
 });
 
+// Hexo URL helpers decode reserved path characters such as %26. Preserve each
+// segment's encoding so generated category/tag routes remain addressable.
+function encodeRoutePath(value) {
+  const match = String(value).match(/^([^?#]*)([\s\S]*)$/);
+  return match[1].split('/').map(part => {
+    try { return encodeURIComponent(decodeURIComponent(part)); } catch (_) { return encodeURIComponent(part); }
+  }).join('/') + match[2];
+}
+function routeUrl(helper, route) { return encodeRoutePath(helper.url_for(route)); }
+
 hexo.extend.helper.register('midnight_canonical_url', function midnightCanonicalUrl(page) {
-  return page.canonical || page.permalink || this.full_url_for(page.path || '/');
+  const value = page.canonical || page.permalink || page.path || '/';
+  return this.full_url_for(value).replace(/^(https?:\/\/[^/]+)([\s\S]*)$/, (_, origin, route) => origin + encodeRoutePath(route));
 });
 
 function isExternalUrl(path) {
@@ -266,7 +277,7 @@ function getSupportedLanguages(helper) {
     ? helper.config.i18n.map((item) => item && item.language).filter(Boolean)
     : [];
   const siteLanguages = Array.isArray(language) ? language : (language ? [language] : []);
-  return Array.from(new Set([...configured, ...siteI18n, ...siteLanguages, cfg.default_lang].filter(Boolean)));
+  return Array.from(new Set([...configured, ...siteI18n, ...siteLanguages, cfg.default_lang].filter(value => value && value !== 'default')));
 }
 
 function getRouteLanguage(helper, page) {
@@ -416,20 +427,20 @@ hexo.extend.helper.register('midnight_i18n_url', function midnightI18nUrl(path, 
   const firstSegment = route.split('/').filter(Boolean)[0];
 
   if (languages.includes(firstSegment)) {
-    return this.url_for(route);
+    return routeUrl(this, route);
   }
 
-  const prefix = getCurrentLanguagePrefix(this, page);
-  if (!prefix) return this.url_for(route);
-  if (route === '/') return this.url_for(`/${prefix}/`);
-  return this.url_for(`/${prefix}${route}`);
+  const prefix = getCurrentLanguagePrefix(this, page) || (/^\/(?:archives|about|advertise|newsletter|privacy)(?:\/|$)/.test(route) ? getRouteLanguage(this, page) : '');
+  if (!prefix) return routeUrl(this, route);
+  if (route === '/') return routeUrl(this, `/${prefix}/`);
+  return routeUrl(this, `/${prefix}${route}`);
 });
 
 hexo.extend.helper.register('midnight_tag_url', function midnightTagUrl(tagValue = '', page = this.page) {
   const lang = getRouteLanguage(this, page);
   const value = String(tagValue || '').trim().replace(/^\/+|\/+$/g, '').replace(/\s+/g, '-');
-  if (!value) return this.url_for(`/${lang}/tags/`);
-  return this.url_for(`/${lang}/tags/${encodeURIComponent(value)}/`);
+  if (!value) return routeUrl(this, `/${lang}/tags/`);
+  return routeUrl(this, `/${lang}/tags/${encodeURIComponent(value)}/`);
 });
 
 hexo.extend.helper.register('midnight_language_links', function midnightLanguageLinks(page = this.page) {
@@ -443,12 +454,17 @@ hexo.extend.helper.register('midnight_language_links', function midnightLanguage
       lang: item.lang,
       title: item.title,
       path: item.path,
-      url: this.url_for(item.path || '/'),
-      absolute_url: item.permalink || this.full_url_for(item.path || '/')
+      url: routeUrl(this, item.path || '/'),
+      absolute_url: this.midnight_canonical_url({ permalink: item.permalink, path: item.path || '/' })
     };
   });
 
+  const generatedRoute = /^\/(?:$|archives\/?$|tags(?:\/|$)|categories(?:\/|$)|about(?:\/|$)|advertise(?:\/|$)|newsletter(?:\/|$)|privacy(?:\/|$))/.test(stripLanguagePrefix(page.path || '/', languages));
+  if (!generatedRoute && !isPostPage(page) && !translations.length) {
+    return [{ lang: currentLang, path: page.path, url: routeUrl(this, page.path || '/'), absolute_url: this.midnight_canonical_url(page), active: true }];
+  }
   return languages.reduce((links, lang) => {
+    if (Array.isArray(page.available_languages) && !page.available_languages.includes(lang)) return links;
     const translated = byLang[lang];
     if (translated) {
       links.push({
@@ -458,15 +474,15 @@ hexo.extend.helper.register('midnight_language_links', function midnightLanguage
       return links;
     }
 
-    if (isPostPage(page)) return links;
+    if (isPostPage(page) || !generatedRoute) return links;
 
     const route = routeForLanguage(this, page.path || '/', lang, page);
     links.push({
       lang,
       title: lang,
       path: route,
-      url: this.url_for(route),
-      absolute_url: this.full_url_for(route),
+      url: routeUrl(this, route),
+      absolute_url: this.midnight_canonical_url({ path: route }),
       active: lang === currentLang
     });
     return links;

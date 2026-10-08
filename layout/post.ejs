@@ -1,15 +1,18 @@
 <%
 const postTags = page.tags && page.tags.data ? page.tags.data : [];
 const postCategories = page.categories && page.categories.data ? page.categories.data : [];
-const primaryTag = postTags.length ? postTags[0].name : (postCategories.length ? postCategories[0].name : 'AI Agent');
-const authorName = config.author || (theme.appearance && (theme.appearance.nick || theme.appearance.logo_text)) || 'midnight';
+const primaryTag = postTags.length ? postTags[0].name : (postCategories.length ? postCategories[0].name : '');
+const articleAuthor = midnight_author(page);
+const authorName = articleAuthor.name;
+const articleSources = midnight_sources(page);
+const keyTakeaways = Array.isArray(page.key_takeaways) ? page.key_takeaways.filter(item => typeof item === 'string' && item.trim()) : [];
 const authorInitial = Array.from(String(authorName).trim())[0] || 'm';
 const plainContent = strip_html(page.content || '').replace(/\s+/g, ' ').trim();
 const description = midnight_excerpt(page, 150);
 const wordCount = plainContent ? plainContent.length : 0;
 const readMinutes = Math.max(1, Math.ceil(wordCount / 500));
 const updatedDate = page.updated || page.date;
-const relatedTopics = midnight_config('post.related', []);
+const relatedTopics = [];
 const newsletterFormAction = String(midnight_config('inner_pages.newsletter.form.action', '') || '').trim();
 const headingMatches = [];
 const usedHeadingIds = {};
@@ -30,7 +33,7 @@ function slugHeading(text, index) {
   return count ? `${base}-${count + 1}` : base;
 }
 
-const articleContent = String(page.content || '').replace(/<h([1-3])([^>]*)>([\s\S]*?)<\/h\1>/gi, (match, level, attrs, text) => {
+const articleContent = String(page.content || '').replace(/<(\/?)h1(\s[^>]*|)>/gi, '<$1h2$2>').replace(/<h([1-3])([^>]*)>([\s\S]*?)<\/h\1>/gi, (match, level, attrs, text) => {
   const plainHeading = strip_html(text).trim();
   if (!plainHeading) return match;
   const idMatch = attrs.match(/\sid=["']([^"']+)["']/i);
@@ -39,13 +42,24 @@ const articleContent = String(page.content || '').replace(/<h([1-3])([^>]*)>([\s
   if (idMatch) return match;
   return `<h${level}${attrs} id="${id}">${text}</h${level}>`;
 });
-const tocItems = headingMatches.slice(0, 8);
-const allPosts = site.posts && site.posts.toArray ? site.posts.toArray() : [];
-const relatedPosts = allPosts.filter((post) => post.path !== page.path).slice(0, 3);
+const tocItems = headingMatches;
+const allPosts = page.all_posts && page.all_posts.toArray ? page.all_posts.toArray() : (site.posts && site.posts.toArray ? site.posts.toArray() : []);
+const languagePosts = allPosts.filter(post => midnight_page_lang(post) === midnight_page_lang(page)).sort((a, b) => b.date - a.date);
+const topicCounts = new Map();
+languagePosts.forEach(post => (post.tags && post.tags.data || []).forEach(tag => {
+  const term = topicCounts.get(tag.name) || { name: tag.name, path: tag.path, count: 0 };
+  term.count += 1; topicCounts.set(tag.name, term);
+}));
+relatedTopics.push(...[...topicCounts.values()].sort((a, b) => b.count - a.count).slice(0, 4));
+const currentIndex = languagePosts.findIndex(post => post.path === page.path);
+const relatedPosts = languagePosts.filter(post => post.path !== page.path).sort((a, b) => {
+  const score = post => (post.tags && post.tags.data || []).filter(tag => postTags.some(current => current.name === tag.name)).length;
+  return score(b) - score(a) || b.date - a.date;
+}).slice(0, 3);
 const navPosts = [
-  { post: page.prev, label: configText('labels.previous_post', 'Previous Post'), direction: 'prev' },
-  { post: page.next, label: configText('labels.next_post', 'Next Post'), direction: 'next' }
-].filter((item) => item.post);
+  { post: languagePosts[currentIndex + 1], label: configText('labels.previous_post', 'Previous Post'), direction: 'prev' },
+  { post: currentIndex > 0 ? languagePosts[currentIndex - 1] : null, label: configText('labels.next_post', 'Next Post'), direction: 'next' }
+].filter(item => item.post);
 const shareUrl = midnight_canonical_url(page);
 const shareTitle = String(page.title || config.title || '');
 const shareTargets = [
@@ -84,6 +98,7 @@ function categoryUrl(label) {
 %>
 
 <article class="post-detail">
+  <nav class="breadcrumbs" aria-label="<%= configText('labels.breadcrumb', 'Breadcrumb') %>"><a href="<%- midnight_i18n_url('/') %>"><%= __('home') %></a><span aria-hidden="true">/</span><a href="<%- midnight_i18n_url('/archives/') %>"><%= __('archive') %></a></nav>
   <header class="post-hero">
     <div class="post-hero__kicker">
       <span class="tag tag--<%= tagClass(primaryTag) %>"><%= primaryTag %></span>
@@ -103,24 +118,22 @@ function categoryUrl(label) {
           <strong><%= authorName %></strong>
           <small><%= configText('labels.author_description', '') %></small>
         </span>
-        <a href="<%- midnight_i18n_url('/about/') %>"><%= configText('labels.follow', 'Follow') %></a>
+        <% if (articleAuthor.url) { %><a href="<%= articleAuthor.url %>" rel="author"><%= configText('labels.author_profile', 'View Author Profile') %></a><% } %>
       </div>
       <div class="post-metrics">
         <%- partial('_partial/metric', { item: page, kind: 'reads', metricTag: 'span' }) %>
         <%- partial('_partial/metric', { item: page, kind: 'comments', metricTag: 'span' }) %>
-        <small><%= configText('labels.updated', 'Updated') %> <%= date(updatedDate, 'YYYY-MM-DD') %> · <%= configText('labels.estimated_read', 'Estimated read') %> <%= readMinutes %> <%= configText('labels.minutes', 'min') %></small>
+        <small><%= configText('labels.updated', 'Updated') %> <time datetime="<%= date_xml(updatedDate) %>"><%= date(updatedDate, 'YYYY-MM-DD') %></time> · <%= configText('labels.estimated_read', 'Estimated read') %> <%= readMinutes %> <%= configText('labels.minutes', 'min') %></small>
       </div>
     </div>
 
-    <div class="post-cover" aria-hidden="true">
-      <i></i><i></i><i></i><i></i><i></i>
-    </div>
+    <% if (page.cover) { %><figure class="editorial-cover editorial-cover--post"><img src="<%= url_for(page.cover) %>" alt="<%= page.cover_alt || '' %>" fetchpriority="high"><% if (page.cover_caption) { %><figcaption><%= page.cover_caption %></figcaption><% } %></figure><% } %>
 
     <%- partial('_partial/language-switcher') %>
   </header>
 
   <div class="post-layout">
-    <main class="post-body">
+    <div class="post-body">
       <p class="post-body__label"><%= configText('labels.article', 'Article') %></p>
 
       <% if (midnight_config('sponsored.enabled', false) === true) { %>
@@ -131,10 +144,12 @@ function categoryUrl(label) {
       </section>
 <% } %>
 
+      <% if (keyTakeaways.length) { %><section class="article-takeaways" aria-labelledby="takeaways-title"><h2 id="takeaways-title"><%= configText('labels.key_takeaways', 'Key takeaways') %></h2><ul><% keyTakeaways.forEach(item => { %><li><%= item %></li><% }) %></ul></section><% } %>
       <div class="article-content">
         <%- articleContent %>
       </div>
 
+      <% if (articleSources.length) { %><section class="article-sources" aria-labelledby="sources-title"><h2 id="sources-title"><%= configText('labels.sources', 'Sources') %></h2><ol><% articleSources.forEach(item => { %><li><a href="<%= item.url %>" rel="noopener"><%= item.title %></a></li><% }) %></ol></section><% } %>
       <% if (postTags.length) { %>
         <footer class="article-taxonomy">
           <span><%= __('tags') %></span>
@@ -173,7 +188,7 @@ function categoryUrl(label) {
           <% }) %>
         </nav>
       <% } %>
-    </main>
+    </div>
 
     <aside class="post-sidebar">
       <p class="post-sidebar__label"><%= configText('labels.sidebar', 'Sidebar') %></p>
@@ -214,7 +229,7 @@ function categoryUrl(label) {
           <h2><%= configText('labels.related_topics', 'Related Topics') %></h2>
           <p><%= configText('labels.related_topics_description', '') %></p>
           <% relatedTopics.forEach((item) => { %>
-            <a class="series-row" href="<%- tagUrl(item.name) %>"><span><%= item.name %></span><b><%= item.count %></b></a>
+            <a class="series-row" href="<%- item.path ? midnight_i18n_url(item.path) : tagUrl(item.name) %>"><span><%= item.name %></span><b><%= item.count %></b></a>
           <% }) %>
         </section>
       <% } %>
@@ -239,12 +254,9 @@ function categoryUrl(label) {
     <div class="related-grid">
       <% relatedPosts.forEach((post, index) => { const label = ['AI Agent', 'Business', 'Hexo Theme'][index] || 'Research'; %>
         <article class="related-card">
-          <a class="story-cover" href="<%- postUrl(post) %>" aria-label="<%= post.title %>">
-            <span class="tag tag--<%= tagClass(label) %>"><%= label %></span>
-            <i></i><i></i><i></i><i></i><i></i>
-          </a>
+          <% if (post.cover) { %><a class="editorial-cover" href="<%- postUrl(post) %>" tabindex="-1" aria-hidden="true"><img src="<%= url_for(post.cover) %>" alt="" loading="lazy"></a><% } %>
           <h3><a href="<%- postUrl(post) %>"><%= post.title %></a></h3>
-          <p><%= date(post.date, 'YYYY-MM-DD') %> · <%= configText('labels.editor_recommend', 'Editor Pick') %></p>
+          <p><%= date(post.date, 'YYYY-MM-DD') %></p>
         </article>
       <% }) %>
     </div>

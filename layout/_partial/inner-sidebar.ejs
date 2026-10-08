@@ -33,10 +33,21 @@ function clickCount(post) {
 }
 
 const realPopularReads = posts
+  .filter(post => clickCount(post) !== null)
   .sort((a, b) => clickCount(b) - clickCount(a) || postDateValue(b) - postDateValue(a))
   .slice(0, 4);
 const popularReads = realPopularReads;
-const seriesEntries = configuredSeriesEntries;
+const configuredCollections = midnight_config('inner_pages.collections', []) || [];
+const seriesEntries = (configuredCollections.length ? configuredCollections : configuredSeriesEntries).flatMap(entry => {
+  const parts = String(entry.path || '').split('/').filter(Boolean);
+  const index = parts.findIndex(part => ['tags', 'categories'].includes(part));
+  if (index < 0 || !parts[index + 1]) return [];
+  let value; try { value = decodeURIComponent(parts[index + 1]); } catch (_) { return []; }
+  const normalize = text => String(text || '').trim().replace(/\s+/g, '-').toLowerCase();
+  const field = parts[index] === 'tags' ? 'tags' : 'categories';
+  const count = posts.filter(post => (post[field] && post[field].data || []).some(term => normalize(term.slug || term.name) === normalize(value))).length;
+  return count ? [{ ...entry, count }] : [];
+});
 
 function seriesHref(entry) {
   const path = entry && entry.path;

@@ -34,7 +34,7 @@ function statValue(value) {
   </header>
 
   <section class="collection-layout inner-layout-v2 commercial-layout">
-    <main class="collection-list commercial-main">
+    <div class="collection-list commercial-main">
       <% if (stats.length) { %>
         <section class="commercial-stats" aria-label="<%= midnight_text('labels.advertise_audience', 'Audience') %>">
           <% stats.slice(0, 4).forEach((item) => { %>
@@ -72,7 +72,7 @@ function statValue(value) {
           </div>
         </section>
       <% } %>
-    </main>
+    </div>
 
     <aside class="collection-sidebar inner-sidebar commercial-sidebar">
       <section class="sidebar-panel commercial-contact">

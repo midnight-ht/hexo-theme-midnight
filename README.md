@@ -189,3 +189,31 @@ Choose `appearance.skin: ocean`, `jade`, or `violet`. Each palette supports ligh
 The old global `appearance.accent` override is deprecated and no longer applied. Use the built-in palettes or configure `accent_light` and `accent_dark` separately with six-digit hex colors and verify contrast for your custom colors.
 
 Optional statistics, search, comments, subscriptions, and AI modules only render when their required configuration is present. Sponsored placements require explicit opt-in. Article statistics default to hidden; the endpoint contract and configuration are documented in the Chinese README.
+
+## Editorial layout and SEO / GEO (0.3)
+
+The homepage, reading view, archives and topic pages use open grids, fine rules and a consistent type scale. Covers render only when supplied. Explicit `editor_pick` flags select editorial recommendations; popularity lists require measured reads. Ocean, jade and violet palettes retain light, dark and system preferences.
+
+The theme emits WebSite, WebPage, BlogPosting and breadcrumb JSON-LD from visible titles, authors, dates and descriptions. Translation links use actual counterpart paths with `x-default`; 404 pages are `noindex`. Index sitemap entries no longer receive synthetic build-time modification dates. Set `seo.structured_data: false` to disable theme JSON-LD. Existing schema injectors should skip pages containing `id="midnight-seo-jsonld"` to avoid duplicate article entities.
+
+Optional article front matter:
+
+```yaml
+author: Author name
+author_url: https://example.com/about/
+summary: A concise description of the article
+key_takeaways:
+  - A conclusion supported by the article
+sources:
+  - title: Original reference
+    url: https://example.com/source
+cover: /images/actual-cover.jpg
+cover_alt: Describe the image
+cover_caption: Caption or credit
+```
+
+Missing takeaways, sources and covers produce no corresponding module. The site author links to the localized about page; guest authors require their own URL. Generic site images are not substituted for article images. `seo.description` and `appearance.tagline` accept localized mappings.
+
+GEO follows [Google's AI features guidance](https://developers.google.com/search/docs/appearance/ai-features): crawlable text, useful internal links, clear structure, verifiable sources and metadata consistent with visible content. No invented FAQ, metrics, sources, dates, indexing promises or special AI text files. Article metadata follows the [Article documentation](https://developers.google.com/search/docs/appearance/structured-data/article).
+
+Run `npm run lint:seo` to validate generated canonical/language metadata, main landmarks, article titles, JSON-LD, visible citations and script escaping. Pass a public output directory to `node scripts/check-seo.js` to check a real site's build.

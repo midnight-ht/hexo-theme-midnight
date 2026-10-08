@@ -11,6 +11,10 @@ tags:
 categories:
   - Engineering
 description: A paired English sample post for validating Midnight i18n, tags, table of contents, and model session entry points.
+sources:
+  - title: Hexo documentation
+    url: https://hexo.io/docs/
+
 ---
 
 ## Why assisted reading matters

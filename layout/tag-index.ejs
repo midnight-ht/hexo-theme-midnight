@@ -3,7 +3,7 @@ const collections = midnight_config('inner_pages.collections', []) || [];
 const tagList = Array.isArray(page.tag_collection) ? page.tag_collection : [];
 
 function slug(value) {
-  return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return String(value || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '');
 }
 
 function tagClass(label) {
@@ -45,7 +45,7 @@ const cards = tagList.filter((tag) => tag.count > 0).map((tag) => {
   </header>
 
   <section class="collection-layout inner-layout-v2">
-    <main class="collection-list">
+    <div class="collection-list">
       <section class="channel-section">
         <div class="section-heading">
           <h2><%= midnight_text('labels.channel_entries', 'Topic Entries') %></h2>
@@ -78,7 +78,7 @@ const cards = tagList.filter((tag) => tag.count > 0).map((tag) => {
           </section>
         <% } %>
       </section>
-    </main>
+    </div>
 
     <aside class="collection-sidebar inner-sidebar">
       <%- partial('_partial/inner-sidebar', { variant: 'tags' }) %>

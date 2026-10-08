@@ -24,7 +24,7 @@
   %>
   <div class="site-footer__brand">
     <strong><%= theme.appearance.logo_text || config.title || 'midnight' %></strong>
-    <p><%= config.description || theme.description || 'A modern technology Hexo theme with AI session, i18n, sitemap, and comments support.' %></p>
+    <p><%= midnight_value((theme.seo || {}).description, config.description || theme.description || '') || 'A modern technology Hexo theme with AI session, i18n, sitemap, and comments support.' %></p>
     <span>&copy; <%= date(new Date(), 'YYYY') %> <%= config.author || config.title || 'Midnight' %></span>
     <% if (footerStatsEnabled && (footerStatsCfg.source || 'busuanzi') === 'busuanzi') { %>
       <span class="site-footer__stats">

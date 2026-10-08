@@ -9,7 +9,7 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const publicRoot = path.join(root, 'example-site', 'public');
-const css = fs.readFileSync(path.join(root, 'source', 'css', 'main.css'), 'utf8');
+const css = ['main.css', 'editorial.css'].map(file => fs.readFileSync(path.join(root, 'source', 'css', file), 'utf8')).join('\n');
 
 function fail(message) {
   console.error(message);

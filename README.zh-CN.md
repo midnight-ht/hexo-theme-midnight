@@ -218,3 +218,31 @@ tag 必须使用 `v*.*.*` 格式，并与 package 版本一致，例如 `v0.1.1`
 ## 开源协议
 
 MIT
+
+## 0.3：编辑式布局与 SEO / GEO
+
+首页、文章、归档和专题采用开放网格、细分隔线和统一字级。无封面时直接呈现文字；仅显式 `editor_pick` 文章进入编辑精选，热门榜只使用真实阅读数。三套皮肤、系统明暗偏好和移动端切换保持可用。
+
+默认输出 WebSite、WebPage、BlogPosting 和面包屑 JSON-LD，文章标题、作者、日期、摘要与可见内容一致。语言关联使用真实翻译路径与 `x-default`；404 标记 `noindex`。语言目录生成器不再把每次构建时间当作目录页的内容更新时间。`seo.structured_data: false` 可关闭主题结构化数据；已有注入脚本应跳过 `id="midnight-seo-jsonld"`，避免重复的文章实体。
+
+可在文章 front matter 中提供以下真实信息；未提供时不显示相应模块：
+
+```yaml
+author: 作者姓名
+author_url: https://example.com/about/
+summary: 文章的简明摘要
+key_takeaways:
+  - 经过正文论证的结论
+sources:
+  - title: 原始资料标题
+    url: https://example.com/original-source
+cover: /images/actual-article-cover.jpg
+cover_alt: 描述这张图片
+cover_caption: 图片说明或署名
+```
+
+`author_url` 未配置时，站点作者关联当前语言的关于页；其他作者不冒用该地址。封面与来源只进入对应文章的结构化数据，不以站点图标替代文章图片。支持在 `seo.description` 与 `appearance.tagline` 中配置 `zh-CN` / `en` 等语言映射。
+
+GEO 的实现遵循 [Google AI 搜索指南](https://developers.google.com/search/docs/appearance/ai-features)：可抓取正文、明确段落与目录、可验证来源、可访问的内链以及与页面一致的结构化数据。主题不自动编造 FAQ、来源、日期、统计或“AI 收录保证”，也不要求额外的 AI 文本文件。文章元数据参考 [Google Article 指南](https://developers.google.com/search/docs/appearance/structured-data/article)。
+
+验证：`npm run lint:seo` 检查生成页面中的语言关联、canonical、唯一主区域、标题与 JSON-LD 一致性、来源可见性和脚本转义；可追加站点输出目录参数验证实际部署产物。

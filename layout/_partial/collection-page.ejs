@@ -8,7 +8,9 @@ const collections = midnight_config('inner_pages.collections', []);
 const currentRoute = String(page.path || '').replace(/^\/+/, '').replace(/index\.html?$/i, '');
 
 function slug(value) {
-  return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  let text = String(value || '');
+  try { text = decodeURIComponent(text); } catch (_) {}
+  return text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '');
 }
 
 function cleanPath(value) {
@@ -141,13 +143,10 @@ const mapItems = collectRelatedTerms();
         <span class="inner-hero__path">midnight / <%= breadcrumb %></span>
       </div>
     </div>
-    <div class="inner-hero__cover" aria-hidden="true">
-      <i></i><i></i><i></i><i></i>
-    </div>
   </header>
 
   <section class="collection-layout inner-layout-v2">
-    <main class="collection-list">
+    <div class="collection-list">
       <% if (featured) { %>
         <section class="channel-section channel-featured">
           <div class="section-heading">
@@ -155,9 +154,7 @@ const mapItems = collectRelatedTerms();
             <p><%= midnight_text('labels.channel_featured_description', '') %></p>
           </div>
           <article class="channel-lead">
-            <a class="story-cover story-cover--lead" href="<%- postUrl(featured) %>" aria-label="<%= featured.title %>">
-              <i></i><i></i><i></i><i></i>
-            </a>
+            <% if (featured.cover) { %><a class="editorial-cover" href="<%- postUrl(featured) %>" tabindex="-1" aria-hidden="true"><img src="<%= url_for(featured.cover) %>" alt="" loading="lazy"></a><% } %>
             <div class="channel-lead__body">
               <span class="tag tag--<%= tagClass(className) %>"><%= displayName %></span>
               <h3><a href="<%- postUrl(featured) %>"><%= featured.title %></a></h3>
@@ -201,9 +198,7 @@ const mapItems = collectRelatedTerms();
         <% if (collectionPosts.length) { %>
           <% latest.forEach((post) => { %>
             <article class="latest-card collection-card">
-              <a class="story-cover story-cover--thumb" href="<%- postUrl(post) %>" aria-label="<%= post.title %>">
-                <i></i><i></i><i></i><i></i>
-              </a>
+              <% if (post.cover) { %><a class="editorial-cover" href="<%- postUrl(post) %>" tabindex="-1" aria-hidden="true"><img src="<%= url_for(post.cover) %>" alt="" loading="lazy"></a><% } %>
               <div>
                 <div class="latest-card__meta">
                   <span class="tag tag--<%= tagClass(className) %>"><%= displayName %></span>
@@ -230,7 +225,7 @@ const mapItems = collectRelatedTerms();
           </section>
         <% } %>
       </section>
-    </main>
+    </div>
 
     <aside class="collection-sidebar inner-sidebar">
       <%- partial('_partial/inner-sidebar', { variant: 'channel', sidebarPosts: allCollectionPosts }) %>

@@ -46,13 +46,13 @@ const sitemap = readPublic('sitemap.xml');
     'class="notice',
     'class="wide"',
     'class="gallery gallery--three"',
-    '<figcaption>',
-    'class="post-navigation"'
+    '<figcaption>'
   ].forEach((needle) => {
     if (!html.includes(needle)) fail(`${file} is missing ${needle}`);
   });
 });
 
+// Each sample language has one post; translations must not become prev/next posts.
 const zhPostHtml = readPublic('zh-CN/2026/05/19/midnight-agent-zh/index.html');
 if (!zhPostHtml.includes('href="/en/2026/05/19/midnight-agent-en/" hreflang="en"')) {
   fail('Chinese post language switcher must link to the real English post path.');
@@ -62,6 +62,7 @@ if (zhPostHtml.includes('/en/2026/05/19/midnight-agent-zh/')) {
 }
 
 const enPostHtml = readPublic('en/2026/05/19/midnight-agent-en/index.html');
+if (zhPostHtml.includes('class="post-navigation"') || enPostHtml.includes('class="post-navigation"')) fail('Post navigation must stay within the current language.');
 if (!enPostHtml.includes('href="/zh-CN/2026/05/19/midnight-agent-zh/" hreflang="zh-CN"')) {
   fail('English post language switcher must link to the real Chinese post path.');
 }
@@ -97,7 +98,7 @@ if (!homePage.includes('navigator.languages')) {
 if (!homePage.includes('class="language-redirect-skeleton"')) {
   fail('index.html should render the language redirect skeleton.');
 }
-if (!homePage.includes('class="section-heading__more" href="/archives/"')) {
+if (!homePage.includes('class="section-heading__more" href="/zh-CN/archives/"')) {
   fail('index.html is missing the latest posts view-more archive link.');
 }
 if (!homePage.includes('class="archive-card archive-card--v2 latest-list__item"')) {

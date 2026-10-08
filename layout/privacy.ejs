@@ -25,7 +25,7 @@ const updated = midnight_value(privacy.updated, '');
   </header>
 
   <section class="legal-layout">
-    <main class="legal-content">
+    <div class="legal-content">
       <% if (updated) { %>
         <p class="legal-updated"><%= midnight_text('labels.privacy_updated', 'Last updated') %>: <%= updated %></p>
       <% } %>
@@ -44,7 +44,7 @@ const updated = midnight_value(privacy.updated, '');
           <p><%= midnight_value(privacy.body, '') %></p>
         </div>
       <% } %>
-    </main>
+    </div>
 
     <aside class="collection-sidebar inner-sidebar legal-sidebar">
       <section class="sidebar-panel">

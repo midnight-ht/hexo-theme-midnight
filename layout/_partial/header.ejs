@@ -2,6 +2,8 @@
   <%
   const headerLanguageLinks = midnight_language_links(page);
   const headerNewsletterAction = String(midnight_config('inner_pages.newsletter.form.action', '') || '').trim();
+  const headerFeed = (config.feed && config.feed.path) || midnight_config('feed.path', 'atom.xml');
+  const headerFeedEnabled = midnight_config('feed.enabled', true) !== false;
   const navConfig = theme.nav || {};
   const legacyNav = Array.isArray(navConfig) ? navConfig : [];
   const homeNav = legacyNav[0] || navConfig.home || { name: 'home', path: '/' };
@@ -76,14 +78,12 @@
   %>
   <div class="utility-bar">
     <div class="utility-bar__inner">
-      <time datetime="<%= new Date().toISOString() %>"><%= date(new Date(), 'dddd, MMMM D, YYYY') %></time>
-      <strong><%= midnight_text('labels.breaking', 'Breaking') %></strong>
-      <span><%= midnight_text('labels.utility_message', '') %></span>
+      <span class="utility-brand"><%= config.title %></span>
       <nav aria-label="<%= midnight_text('labels.utility_navigation', 'Utility') %>">
         <% if (headerNewsletterAction) { %>
           <a href="<%- midnight_i18n_url('/newsletter/') %>"><%= __('newsletter') %></a>
         <% } %>
-        <a href="<%- url_for('/atom.xml') %>">RSS</a>
+        <% if (headerFeedEnabled) { %><a href="<%- url_for('/' + headerFeed.replace(/^\/+/, '')) %>">RSS</a><% } %>
         <a href="<%- midnight_i18n_url('/advertise/') %>"><%= __('advertise') %></a>
         <% languageSelectMarkup('language-select--utility') %>
         <% themeToggleMarkup('theme-toggle--utility') %>
@@ -110,7 +110,7 @@
         <span><%= brandName %></span>
       </a>
       <% if (brandTagline) { %>
-        <!-- <span class="brand-tagline"><%= brandTagline %></span> -->
+        <span class="brand-tagline"><%= brandTagline %></span>
       <% } %>
     </div>
 
@@ -140,12 +140,7 @@
   <aside class="mobile-menu" id="mobile-menu" data-mobile-menu hidden aria-hidden="true">
     <div class="mobile-menu__head">
       <strong><%= brandName %></strong>
-      <button class="mobile-menu__close" type="button" data-mobile-menu-close aria-label="<%= midnight_text('labels.close_menu', 'Close menu') %>">x</button>
-    </div>
-    <div class="mobile-menu__brief">
-      <time datetime="<%= new Date().toISOString() %>"><%= date(new Date(), 'dddd, MMMM D, YYYY') %></time>
-      <strong><%= midnight_text('labels.breaking', 'Breaking') %></strong>
-      <span><%= midnight_text('labels.utility_message', '') %></span>
+      <button class="mobile-menu__close" type="button" data-mobile-menu-close aria-label="<%= midnight_text('labels.close_menu', 'Close menu') %>"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
     </div>
     <% if (midnight_config('search.enabled', false) === true && String(midnight_config('search.action', '')).trim()) { %>
 <form class="mobile-menu__search" action="<%- midnight_i18n_url(midnight_config('search.action', '')) %>" role="search">
@@ -165,7 +160,7 @@
       <% if (headerNewsletterAction) { %>
         <a href="<%- midnight_i18n_url('/newsletter/') %>"><%= __('newsletter') %></a>
       <% } %>
-      <a href="<%- url_for('/atom.xml') %>">RSS</a>
+      <% if (headerFeedEnabled) { %><a href="<%- url_for('/' + headerFeed.replace(/^\/+/, '')) %>">RSS</a><% } %>
       <a href="<%- midnight_i18n_url('/advertise/') %>"><%= __('advertise') %></a>
     </nav>
     <% if (headerNewsletterAction) { %>

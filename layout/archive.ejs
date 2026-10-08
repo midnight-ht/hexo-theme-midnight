@@ -1,9 +1,9 @@
 <%
 const archivePosts = page.posts && page.posts.toArray ? page.posts.toArray() : [];
 const currentLang = midnight_page_lang(page);
-const rawSitePosts = site.posts && site.posts.toArray ? site.posts.toArray() : archivePosts;
+const rawSitePosts = page.all_posts && page.all_posts.toArray ? page.all_posts.toArray() : (site.posts && site.posts.toArray ? site.posts.toArray() : archivePosts);
 const langSitePosts = rawSitePosts.filter((post) => midnight_page_lang(post) === currentLang);
-const allSitePosts = (langSitePosts.length ? langSitePosts : rawSitePosts).sort((a, b) => b.date - a.date);
+const allSitePosts = langSitePosts.sort((a, b) => b.date - a.date);
 const archivePerPage = Number(page.per_page || 10);
 const archiveCurrent = Number(page.current || 1);
 const archiveDerivedTotal = archivePerPage > 0 && allSitePosts.length > archivePerPage
@@ -76,9 +76,9 @@ const archiveMap = [
     body: configText('labels.archive_description', '')
   },
   {
-    metric: topTags.length || topCategories.length,
-    title: configText('labels.series', 'Series'),
-    body: configText('labels.series_description', '')
+    metric: Object.keys(tagMap).length,
+    title: __('tags'),
+    body: configText('labels.topics_description', '')
   },
   {
     metric: authorTotal,
@@ -86,8 +86,8 @@ const archiveMap = [
     body: configText('labels.author_description', '')
   },
   {
-    metric: topCategories.length || years.length,
-    title: configText('labels.channels', 'Channels'),
+    metric: Object.keys(categoryMap).length,
+    title: __('categories'),
     body: configText('labels.latest_description', '')
   }
 ];
@@ -116,7 +116,7 @@ const renderedArchiveYears = new Set();
   </header>
 
   <div class="collection-layout inner-layout-v2">
-    <main class="collection-list">
+    <div class="collection-list">
       <section class="channel-section archive-v2-section">
         <div class="section-heading">
           <h2><%= configText('labels.archive_v2_title', configText('labels.archive_map', 'Archive Enhanced')) %></h2>
@@ -192,7 +192,7 @@ const renderedArchiveYears = new Set();
           </section>
         <% } %>
       </section>
-    </main>
+    </div>
 
     <aside class="collection-sidebar inner-sidebar">
       <%- partial('_partial/inner-sidebar', { variant: 'archive' }) %>

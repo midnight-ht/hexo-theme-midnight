@@ -141,7 +141,9 @@ seo:
   twitter_card: summary_large_image
   open_graph: true
   open_graph_image: ""
-  robots: index,follow
+  robots: index,follow,max-image-preview:large
+  structured_data: true
+  description: "" # Optional localized site description: {zh-CN: ..., en: ...}
   keywords: ""
   baidu_site_verification: ""
   google_site_verification: ""
@@ -177,6 +179,18 @@ footer:
       en: "{} visitors"
 
 labels:
+  all:
+    zh-CN: 全部
+    en: All
+  sources:
+    zh-CN: 参考来源
+    en: Sources
+  key_takeaways:
+    zh-CN: 核心要点
+    en: Key takeaways
+  breadcrumb:
+    zh-CN: 面包屑导航
+    en: Breadcrumb
   color_scheme:
     zh-CN: 外观
     en: Appearance

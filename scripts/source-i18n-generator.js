@@ -24,7 +24,7 @@ function getI18nLanguages(hexo) {
     ...siteI18n,
     ...siteLanguages,
     themeI18n.default_lang
-  ].filter(Boolean)));
+  ].filter(value => value && value !== 'default')));
 }
 
 function sourceDir(hexo) {
@@ -106,7 +106,7 @@ function collection(items, basePath) {
   const data = toArray(items).filter(Boolean).map((name) => ({
     name,
     slug: String(name).replace(/\s+/g, '-'),
-    path: `${basePath}/${encodeURIComponent(String(name))}/`
+    path: `${basePath}/${encodeURIComponent(String(name).trim().replace(/\s+/g, '-'))}/`
   }));
 
   return { data };
@@ -302,7 +302,7 @@ function stripHtml(value) {
 }
 
 function postSummary(post) {
-  return stripHtml(post.excerpt || post.rawContent).slice(0, 280);
+  return stripHtml(post.description || post.summary || post.excerpt || post.rawContent || post.content).slice(0, 280);
 }
 
 function collectTerms(posts, key) {
@@ -463,6 +463,9 @@ hexo.extend.generator.register('midnight_source_i18n_pages', function midnightSo
 
   return Promise.all(languages.map(async (lang) => {
     const posts = postsByLanguage.get(lang) || [];
+    await Promise.all(posts.map(async post => {
+      post.content = await this.render.render({ text: post.rawContent, engine: 'md' });
+    }));
 
     routes.push({
       path: `${lang}/index.html`,
@@ -500,6 +503,7 @@ hexo.extend.generator.register('midnight_source_i18n_pages', function midnightSo
         path: `${lang}/tags/${encodeURIComponent(tag.slug)}/index.html`,
         layout: ['tag', 'archive', 'index'],
         data: {
+          available_languages: languages.filter(candidate => mergeConfiguredTerms(collectTermDetails(postsByLanguage.get(candidate) || [], 'tags'), this, 'tags').some(term => term.slug === tag.slug)),
           tag: tag.name,
           tag_slug: tag.slug,
           lang,
@@ -518,6 +522,7 @@ hexo.extend.generator.register('midnight_source_i18n_pages', function midnightSo
           path: `${lang}/categories/${encodeURIComponent(categorySlug)}/index.html`,
           layout: ['category', 'archive', 'index'],
           data: {
+            available_languages: languages.filter(candidate => mergeConfiguredTerms(collectTermDetails(postsByLanguage.get(candidate) || [], 'categories'), this, 'categories').some(term => term.slug === category.slug)),
             category: category.name,
             category_slug: categorySlug,
             lang,
@@ -550,16 +555,15 @@ hexo.extend.generator.register('midnight_source_i18n_pages', function midnightSo
     });
 
     const postRoutes = await Promise.all(posts.map(async (post) => {
-      const content = await this.render.render({
-        text: post.rawContent,
-        engine: 'md'
-      });
+      const content = post.content;
 
       return {
         path: `${post.path}index.html`,
         layout: ['post'],
         data: {
           ...post,
+          layout: 'post',
+          all_posts: postsCollection(posts),
           translations: translationsForPost(this, post, postsByTranslationKey),
           content,
           excerpt: post.excerpt || content.split('<!-- more -->')[0]
@@ -589,32 +593,28 @@ hexo.extend.generator.register('midnight_source_i18n_pages', function midnightSo
 
 hexo.extend.generator.register('midnight_source_i18n_sitemap', function midnightSourceI18nSitemap() {
   const languages = getI18nLanguages(this);
-  if (!hasLanguagePostDirs(this, languages)) return [];
+  if (!hasLanguagePostDirs(this, languages) || (themeConfig(this).sitemap || {}).enabled === false) return [];
 
-  const now = new Date().toISOString();
-  const items = [{ loc: siteUrl(this, ''), lastmod: now }];
+  const items = [{ loc: siteUrl(this, '') }];
 
   languages.forEach((lang) => {
     const posts = postsForLanguage(this, lang);
 
-    ['', 'about/', 'links/', 'archives/', 'tags/'].forEach((route) => {
+    ['', 'about/', 'archives/', 'tags/'].forEach((route) => {
       items.push({
-        loc: siteUrl(this, `${lang}/${route}`),
-        lastmod: now
+        loc: siteUrl(this, `${lang}/${route}`)
       });
     });
 
     collectTerms(posts, 'tags').forEach((tag) => {
       items.push({
-        loc: siteUrl(this, `${lang}/tags/${encodeURIComponent(termSlug(tag))}/`),
-        lastmod: now
+        loc: siteUrl(this, `${lang}/tags/${encodeURIComponent(termSlug(tag))}/`)
       });
     });
 
     collectTerms(posts, 'categories').forEach((category) => {
       items.push({
-        loc: siteUrl(this, `${lang}/categories/${encodeURIComponent(termSlug(category))}/`),
-        lastmod: now
+        loc: siteUrl(this, `${lang}/categories/${encodeURIComponent(termSlug(category))}/`)
       });
     });
 
@@ -627,12 +627,13 @@ hexo.extend.generator.register('midnight_source_i18n_sitemap', function midnight
   });
 
   return {
-    path: 'sitemap.xml',
+    path: ((this.config.sitemap || {}).path || (themeConfig(this).sitemap || {}).path || 'sitemap.xml').replace(/^\/+/, ''),
     data: sitemapXml(items)
   };
 });
 
 hexo.extend.generator.register('midnight_source_i18n_feed', function midnightSourceI18nFeed() {
+  if ((themeConfig(this).feed || {}).enabled === false) return [];
   const languages = getI18nLanguages(this);
   if (!hasLanguagePostDirs(this, languages)) return [];
 
@@ -703,4 +704,13 @@ hexo.extend.generator.register('midnight_source_i18n_feed', function midnightSou
   });
 
   return feeds;
+});
+
+// Standard Hexo _posts sites need a working feed as well as language-directory sites.
+hexo.extend.generator.register('midnight_standard_feed', function midnightStandardFeed(locals) {
+  const theme = themeConfig(this);
+  if ((theme.feed || {}).enabled === false || hasLanguagePostDirs(this, getI18nLanguages(this))) return [];
+  const posts = locals.posts && locals.posts.toArray ? locals.posts.toArray().sort((a,b) => b.date - a.date) : [];
+  const feedPath = ((this.config.feed || {}).path || (theme.feed || {}).path || 'atom.xml').replace(/^\/+/, '');
+  return { path: feedPath, data: atomXml(this, posts, { path: feedPath }) };
 });

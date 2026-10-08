@@ -14,20 +14,32 @@
         : (/(^|\/)privacy\/?$/i.test(headRouteNoLang) ? 'privacy' : '')));
   const headInnerPageConfig = headInnerPageKey ? midnight_config('inner_pages.' + headInnerPageKey, {}) : {};
   const headAboutHasContent = headInnerPageKey === 'about' && Boolean(page.content && strip_html(page.content).replace(/\s+/g, '').trim());
-  const headRawTitle = headInnerPageKey && !headAboutHasContent ? midnight_value(headInnerPageConfig.title, page.title || config.title) : page.title;
+  const headTerm = page.tag_slug || page.category_slug || page.tag || page.category;
+  function headTermKey(value) {
+    let text = String(value || ''); try { text = decodeURIComponent(text); } catch (_) {}
+    return text.trim().toLowerCase().replace(/\s+/g, '-');
+  }
+  const headCollection = headTerm ? midnight_config('inner_pages.collections', []).find(item => {
+    const parts = String(item.path || '').split('/').filter(Boolean);
+    return headTermKey(item.name) === headTermKey(headTerm) || headTermKey(parts[parts.length - 1]) === headTermKey(headTerm);
+  }) : null;
+  const headContentTitle = headCollection ? midnight_value(headCollection.label, page.title) : (page.archive ? __('archive') : (page.tag_index ? __('tags') : page.title));
+  const headRawTitle = headInnerPageKey && !headAboutHasContent ? midnight_value(headInnerPageConfig.title, page.title || config.title) : headContentTitle;
   const pageDescription = strip_html(
     (headInnerPageKey && !headAboutHasContent ? midnight_value(headInnerPageConfig.description, '') : '') ||
+    (headCollection ? midnight_value(headCollection.description, '') : '') ||
     midnight_excerpt(page, 150) ||
-    config.description ||
+    midnight_value(seoCfg.description, config.description || '') ||
     theme.description ||
     ''
   ).replace(/\s+/g, ' ').trim().substring(0, 160);
   const siteTitle = String(config.title || '').trim();
   const normalizedHeadTitle = String(headRawTitle || '').trim();
   const duplicateSiteTitle = normalizedHeadTitle && siteTitle && normalizedHeadTitle.toLowerCase() === siteTitle.toLowerCase();
-  const pageTitle = normalizedHeadTitle
+  const paginationSuffix = Number(page.current || 1) > 1 ? ` (${page.current})` : '';
+  const pageTitle = (normalizedHeadTitle
     ? (duplicateSiteTitle ? siteTitle : `${normalizedHeadTitle}${titleSeparator}${siteTitle}`)
-    : siteTitle;
+    : siteTitle) + paginationSuffix;
   const pageUrl = midnight_canonical_url(page);
   const ogImage = page.og_image || page.cover || seoCfg.open_graph_image || '';
   const favicon = theme.favicon || '';
@@ -125,7 +137,7 @@
     <meta name="keywords" content="<%= Array.isArray(page.keywords) ? page.keywords.join(',') : (page.keywords || seoCfg.keywords) %>">
   <% } %>
   <% if (seoCfg.robots !== false) { %>
-    <meta name="robots" content="<%= seoCfg.robots || 'index,follow' %>">
+    <meta name="robots" content="<%= page.noindex || /(?:^|\/)404(?:\.html|\/|$)/.test(String(page.path || '')) ? 'noindex,follow' : (seoCfg.robots || 'index,follow,max-image-preview:large') %>">
   <% } %>
   <% if (seoCfg.baidu_site_verification) { %>
     <meta name="baidu-site-verification" content="<%= seoCfg.baidu_site_verification %>">
@@ -136,10 +148,12 @@
   <% if (seoCfg.bing_site_verification) { %>
     <meta name="msvalidate.01" content="<%= seoCfg.bing_site_verification %>">
   <% } %>
-  <link rel="canonical" href="<%- midnight_canonical_url(page) %>">
+  <link rel="canonical" href="<%= midnight_canonical_url(page) %>">
   <% const languageLinks = midnight_language_links(page); %>
+  <% const defaultLanguageLink = languageLinks.find(item => item.lang === (headI18n.default_lang || headLanguages[0])); %>
+  <% if (defaultLanguageLink) { %><link rel="alternate" hreflang="x-default" href="<%= defaultLanguageLink.absolute_url || defaultLanguageLink.url %>"><% } %>
   <% languageLinks.forEach((item) => { %>
-    <link rel="alternate" hreflang="<%= item.lang %>" href="<%- item.absolute_url || item.url %>">
+    <link rel="alternate" hreflang="<%= item.lang %>" href="<%= item.absolute_url || item.url %>">
   <% }) %>
   <%
   const sitemapSiteCfg = (config && config.sitemap) || {};
@@ -166,7 +180,10 @@
     <meta property="og:site_name" content="<%= config.title %>">
     <meta property="og:locale" content="<%= midnight_page_lang(page).replace('-', '_') %>">
     <% if (ogImage) { %><meta property="og:image" content="<%- full_url_for(ogImage) %>"><% } %>
-    <meta name="twitter:card" content="<%= seoCfg.twitter_card || 'summary_large_image' %>">
+    <meta name="twitter:card" content="<%= ogImage ? (seoCfg.twitter_card || 'summary_large_image') : 'summary' %>">
+  <% } %>
+  <% if (seoCfg.structured_data !== false && !page.noindex && !/404/.test(String(page.path || ''))) { %>
+    <script id="midnight-seo-jsonld" type="application/ld+json"><%- midnight_structured_data(page, pageTitle, pageDescription, ogImage) %></script>
   <% } %>
   <meta name="theme-color" content="#080b10">
   <%
@@ -196,8 +213,9 @@
       root.classList.add(root.dataset.theme === 'dark' ? 'theme-dark' : 'theme-light');
     })();
   </script>
-  <% const assetVersion = theme.asset_version || theme.version || '0.2.2'; %>
+  <% const assetVersion = theme.asset_version || theme.version || '0.3.0'; %>
   <link rel="stylesheet" href="<%- url_for('/css/main.css') %>?v=<%- assetVersion %>">
+  <link rel="stylesheet" href="<%- url_for('/css/editorial.css') %>?v=<%- assetVersion %>">
   <% const safeAccent = value => /^#[0-9a-f]{6}$/i.test(String(value || '')) ? value : ''; %>
   <% if (safeAccent(appearanceCfg.accent_light) || safeAccent(appearanceCfg.accent_dark)) { %>
     <style>
