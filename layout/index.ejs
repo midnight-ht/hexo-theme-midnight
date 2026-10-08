@@ -28,7 +28,7 @@ function uniquePosts(list) {
 function truthyFrontMatter(value) {
   if (value === true) return true;
   if (typeof value === 'number') return value > 0;
-  if (typeof value === 'string') return !['false', 'no', '0', 'off'].includes(value.trim().toLowerCase());
+  if (typeof value === 'string') return ['true', 'yes', '1', 'on'].includes(value.trim().toLowerCase());
   return false;
 }
 
@@ -142,13 +142,9 @@ const collectionEntries = uniquePosts(collectionConfigs.map((item) => {
 }).filter(Boolean));
 const channels = collectionEntries.length ? collectionEntries.map((item) => item.label) : tagTerms.map((item) => item.name);
 const series = (collectionEntries.length ? collectionEntries : tagTerms.slice(0, 4)).slice(0, 6);
-const todayPosts = homePosts.slice(0, 4);
-const feature = todayPosts[0];
-const secondaryPosts = todayPosts.slice(1, 4);
-const manualEditorPosts = withoutPosts(homePosts, todayPosts).filter(isEditorPick).sort((a, b) => editorPickRank(a) - editorPickRank(b) || postDateValue(b) - postDateValue(a));
-const editorPosts = uniquePosts(manualEditorPosts).slice(0, 3);
-const latestCandidates = withoutPosts(homePosts, [feature].concat(editorPosts));
-const latestPosts = (latestCandidates.length ? latestCandidates : homePosts).slice(0, 6);
+const editorPosts = uniquePosts(homePosts.filter(isEditorPick)
+  .sort((a, b) => editorPickRank(a) - editorPickRank(b) || postDateValue(b) - postDateValue(a))).slice(0, 2);
+const latestPosts = withoutPosts(homePosts, editorPosts).slice(0, 6);
 const latestListUrl = midnight_i18n_url('/archives/');
 const popularPosts = homePosts
   .filter((post) => isWithinRecentDays(post, 7) && clickCount(post) !== null)
@@ -172,6 +168,11 @@ function primaryTag(post, fallback) {
 
 function channelClass(label) {
   return String(label).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'topic';
+}
+
+function tagLabel(label) {
+  const collection = collectionConfigs.find((item) => item.name === label || midnight_value(item.label, item.name) === label);
+  return collection ? midnight_value(collection.label, label) : label;
 }
 
 function tagUrl(label) {
@@ -206,43 +207,24 @@ function configText(path, fallback) {
 <header class="publication-intro">
   <p><%= midnight_value(theme.appearance && theme.appearance.tagline, config.subtitle || config.description || '') %></p>
 </header>
-<% if (feature) { %>
-<section class="home-hero" aria-labelledby="home-featured">
-  <article class="feature-card">
-    <% if (feature.cover) { %><a class="editorial-cover" href="<%- postUrl(feature) %>" tabindex="-1" aria-hidden="true"><img src="<%= url_for(feature.cover) %>" alt="" fetchpriority="high"></a><% } %>
-    <div class="story-category"><%= primaryTag(feature, '') %></div>
-    <div class="story-body">
-      <h1 id="home-featured"><a href="<%- postUrl(feature) %>"><%= feature.title %></a></h1>
-      <p><%= postExcerpt(feature) || config.description || theme.description %></p>
-    </div>
-    <footer class="story-meta">
-      <span class="avatar"><%= authorInitial %></span>
-      <span><strong><%= feature.author || authorName %></strong></span>
-      <time datetime="<%= date_xml(feature.date) %>"><%= date(feature.date, 'YYYY-MM-DD') %></time>
-      <%- partial('_partial/metric', { item: feature, kind: 'reads', metricTag: 'em' }) %>
-      <%- partial('_partial/metric', { item: feature, kind: 'comments', metricTag: 'em' }) %>
-    </footer>
-  </article>
-
-  <% if (secondaryPosts.length) { %>
-  <aside class="hero-rail" aria-label="<%= configText('labels.secondary_title', 'Secondary Stories') %>">
-    <div>
-      <h2><%= configText('labels.secondary_title', 'Secondary Stories') %></h2>
-      <p><%= configText('labels.secondary_description', '') %></p>
-    </div>
-    <% secondaryPosts.forEach((post, index) => { const fallback = channels[index % channels.length] || 'Opinion'; %>
-      <article class="rail-story">
-        <span class="tag tag--<%= channelClass(fallback) %>"><%= primaryTag(post, fallback) %></span>
-        <h3><a href="<%- postUrl(post) %>"><%= post.title %></a></h3>
-        <time datetime="<%= date_xml(post.date) %>"><%= date(post.date, 'MM-DD') %></time>
-        <p><%- partial('_partial/metric', { item: post, kind: 'reads', metricTag: 'span' }) %></p>
-      </article>
+<h1 class="home-title"><%= config.title %></h1>
+<% if (editorPosts.length) { %>
+<section class="home-selected" aria-labelledby="home-selected-title">
+  <h2 id="home-selected-title"><%= configText('labels.editor_picks', 'Editor Picks') %></h2>
+  <div class="home-selected__grid">
+    <% editorPosts.forEach((post) => { const tag = primaryTag(post, ''); %>
+    <article class="home-selected__story">
+      <% if (tag) { %><a class="home-selected__category" href="<%- tagUrl(tag) %>"><%= tagLabel(tag) %></a><% } %>
+      <h3><a href="<%- postUrl(post) %>"><%= post.title %></a></h3>
+      <% if (postExcerpt(post)) { %><p><%= postExcerpt(post) %></p><% } %>
+      <footer><span><%= post.author || authorName %></span><time datetime="<%= date_xml(post.date) %>"><%= date(post.date, 'YYYY-MM-DD') %></time></footer>
+    </article>
     <% }) %>
-  </aside>
-  <% } %>
+  </div>
 </section>
-<% } else { %>
-<section class="archive-empty"><h1><%= config.title %></h1><p><%= configText('labels.no_posts', 'No Posts Yet') %></p></section>
+<% } %>
+<% if (!homePosts.length) { %>
+<section class="archive-empty"><p><%= configText('labels.no_posts', 'No Posts Yet') %></p></section>
 <% } %>
 
 <% if (channels.length) { %>
@@ -261,28 +243,6 @@ function configText(path, fallback) {
 
 <section class="home-layout">
   <div class="content-column">
-    <% if (editorPosts.length) { %>
-    <div class="section-heading">
-      <h2><%= configText('labels.editor_picks', 'Editor Picks') %></h2>
-      <p><%= configText('labels.editor_picks_description', '') %></p>
-    </div>
-
-    <div class="editor-grid">
-      <% editorPosts.forEach((post, index) => { const fallback = channels[index % channels.length] || 'Engineering'; %>
-        <article class="editor-card">
-          <% if (post.cover) { %><a class="editorial-cover" href="<%- postUrl(post) %>" tabindex="-1" aria-hidden="true"><img src="<%= url_for(post.cover) %>" alt="" loading="lazy"></a><% } %>
-          <h3><a href="<%- postUrl(post) %>"><%= post.title %></a></h3>
-          <p><%= postExcerpt(post) || configText('labels.editor_picks_description', '') %></p>
-          <footer>
-            <span class="avatar"><%= authorInitial %></span>
-            <span><strong><%= authorName %></strong><small><%= configText('labels.editor_recommend', 'Editor Pick') %></small></span>
-            <time datetime="<%= date_xml(post.date) %>"><%= date(post.date, 'MM-DD') %></time>
-          </footer>
-        </article>
-      <% }) %>
-    </div>
-
-    <% } %>
     <% if (midnight_config('sponsored.enabled', false) === true) { %>
 <section class="sponsor sponsor--native" aria-label="<%= configText('labels.sponsored', 'Sponsored') %>">
       <span><%= configText('labels.sponsored', 'Sponsored') %></span>
@@ -291,6 +251,7 @@ function configText(path, fallback) {
     </section>
 <% } %>
 
+    <% if (latestPosts.length) { %>
     <div class="section-heading">
       <div class="section-heading__copy">
         <h2 id="latest-posts"><%= __('latest_posts') %></h2>
@@ -300,7 +261,7 @@ function configText(path, fallback) {
     </div>
 
     <div class="latest-list" aria-labelledby="latest-posts">
-      <% latestPosts.forEach((post, index) => { const fallback = channels[index % channels.length]; %>
+      <% latestPosts.forEach((post, index) => { const fallback = ''; const tag = primaryTag(post, fallback); %>
         <article class="archive-card archive-card--v2 latest-list__item">
           <time class="archive-date" datetime="<%= date_xml(post.date) %>">
             <span><%= date(post.date, 'MM-DD') %></span>
@@ -308,7 +269,7 @@ function configText(path, fallback) {
           </time>
           <div class="archive-card__body">
             <div class="latest-card__meta">
-              <a class="tag tag--<%= channelClass(fallback) %>" href="<%- tagUrl(primaryTag(post, fallback)) %>"><%= primaryTag(post, fallback) %></a>
+              <% if (tag) { %><a class="tag tag--<%= channelClass(tag) %>" href="<%- tagUrl(tag) %>"><%= tagLabel(tag) %></a><% } %>
               <time datetime="<%= date_xml(post.date) %>"><%= date(post.date, 'YYYY-MM-DD') %></time>
             </div>
             <h3><a href="<%- postUrl(post) %>"><%= post.title %></a></h3>
@@ -321,6 +282,7 @@ function configText(path, fallback) {
         </article>
       <% }) %>
     </div>
+    <% } %>
   </div>
 
   <aside class="home-sidebar">

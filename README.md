@@ -217,3 +217,5 @@ Missing takeaways, sources and covers produce no corresponding module. The site 
 GEO follows [Google's AI features guidance](https://developers.google.com/search/docs/appearance/ai-features): crawlable text, useful internal links, clear structure, verifiable sources and metadata consistent with visible content. No invented FAQ, metrics, sources, dates, indexing promises or special AI text files. Article metadata follows the [Article documentation](https://developers.google.com/search/docs/appearance/structured-data/article).
 
 Run `npm run lint:seo` to validate generated canonical/language metadata, main landmarks, article titles, JSON-LD, visible citations and script escaping. Pass a public output directory to `node scripts/check-seo.js` to check a real site's build.
+
+Homepage picks show only current-language posts explicitly marked `editor_pick: true`, ordered by `editor_pick_order` ascending then date descending, with a maximum of two. With no picks, the entire section is hidden. Selected posts are excluded from the latest list; archives retain every post.

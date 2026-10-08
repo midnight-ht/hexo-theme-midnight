@@ -246,3 +246,5 @@ cover_caption: 图片说明或署名
 GEO 的实现遵循 [Google AI 搜索指南](https://developers.google.com/search/docs/appearance/ai-features)：可抓取正文、明确段落与目录、可验证来源、可访问的内链以及与页面一致的结构化数据。主题不自动编造 FAQ、来源、日期、统计或“AI 收录保证”，也不要求额外的 AI 文本文件。文章元数据参考 [Google Article 指南](https://developers.google.com/search/docs/appearance/structured-data/article)。
 
 验证：`npm run lint:seo` 检查生成页面中的语言关联、canonical、唯一主区域、标题与 JSON-LD 一致性、来源可见性和脚本转义；可追加站点输出目录参数验证实际部署产物。
+
+首页精选只展示明确设置 `editor_pick: true` 的当前语言文章，按 `editor_pick_order` 升序、日期降序排列，最多两篇。没有配置时整个精选区隐藏；精选文章不会重复出现在首页最新列表中，完整文章仍可在归档中找到。
