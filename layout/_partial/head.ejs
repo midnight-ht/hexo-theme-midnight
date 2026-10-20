@@ -25,14 +25,14 @@
   }) : null;
   const headContentTitle = headCollection ? midnight_value(headCollection.label, page.title) : (page.archive ? __('archive') : (page.tag_index ? __('tags') : (page.title === 'Page Not Found' ? __('not_found_title') : page.title)));
   const headRawTitle = headInnerPageKey && !headAboutHasContent ? midnight_value(headInnerPageConfig.title, page.title || config.title) : headContentTitle;
-  const pageDescription = strip_html(
+  const headConfiguredDescription =
     (headInnerPageKey && !headAboutHasContent ? midnight_value(headInnerPageConfig.description, '') : '') ||
-    (headCollection ? midnight_value(headCollection.description, '') : '') ||
-    midnight_excerpt(page, 150) ||
-    midnight_value(seoCfg.description, config.description || '') ||
-    theme.description ||
-    ''
-  ).replace(/\s+/g, ' ').trim().substring(0, 160);
+    (headCollection ? midnight_value(headCollection.description, '') : '');
+  const pageDescription = (
+    strip_html(headConfiguredDescription) ||
+    midnight_description(page, 150) ||
+    strip_html(midnight_value(seoCfg.description, config.description || '') || theme.description || '')
+  ).replace(/\s+/g, ' ').trim();
   const siteTitle = String(config.title || '').trim();
   const normalizedHeadTitle = String(headRawTitle || '').trim();
   const duplicateSiteTitle = normalizedHeadTitle && siteTitle && normalizedHeadTitle.toLowerCase() === siteTitle.toLowerCase();

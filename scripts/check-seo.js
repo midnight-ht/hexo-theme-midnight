@@ -79,6 +79,15 @@ for (const file of walk(root)) {
       assert.equal(article.url, canonical.href);
       for (const citation of article.citation || []) assert([...document.querySelectorAll('.article-sources a')].some(link => link.href === citation));
       assert(document.querySelector('.article-content').textContent.trim().length > 0);
+      if (file.endsWith('/en/2026/05/19/midnight-agent-en/index.html')) {
+        const expectedDescription = 'An async import can return a module after validation, and this paired English article explains the reading workflow, the failure paths, and the evidence readers can inspect. It keeps the complete author-written summary visible in the article and metadata while preserving context & clarity across search previews at the <module> boundary.';
+        assert(expectedDescription.length > 150);
+        assert.equal(document.querySelector('meta[name="description"]').content, expectedDescription, `${file}: explicit metadata must stay whole`);
+        assert.equal(document.querySelector('meta[property="og:description"]').content, expectedDescription, `${file}: Open Graph must match explicit metadata`);
+        assert.equal(document.querySelector('.post-hero__summary').textContent.trim(), expectedDescription, `${file}: visible lede must match explicit metadata`);
+        assert.equal(article.description, expectedDescription, `${file}: article schema must match visible lede`);
+        assert(!document.querySelector('.post-hero__summary img, img[onerror]'), `${file}: description markup must not create active HTML`);
+      }
       const entries = articleByLanguage.get(article.inLanguage) || new Map();
       entries.set(article.url, article.author.name);
       articleByLanguage.set(article.inLanguage, entries);

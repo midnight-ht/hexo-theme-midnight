@@ -25,6 +25,8 @@ cover_alt: A useful description of the cover
 
 `key_takeaways` and `sources` render only when supplied. The same validated source URLs appear in BlogPosting citations. Publication/update dates must describe actual publication and meaningful editorial changes. A theme change is not a reason to reset every article's update date. Keep translations connected with the existing translation key configuration.
 
+An article's explicit `description` is rendered as plain text, without automatic shortening or code-word filtering. It supplies the visible article lede, description and Open Graph meta tags, and BlogPosting description. Keep it accurate and concise by editorial choice. When no description is supplied, the theme falls back to its short automatic excerpt; article cards continue to use that excerpt.
+
 ## Content structure
 
 The theme supplies the article H1; begin Markdown sections with H2 and subsections with H3. State the answer or scope early, explain the method and constraints, use descriptive link text, and cite original evidence close to claims. Tables, lists and code should clarify the argument. Do not add repetitive FAQs, hidden answers, invented author credentials, keyword blocks or instructions aimed at manipulating AI systems.

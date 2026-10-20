@@ -559,6 +559,15 @@ function stripExcerptHtml(value) {
     .trim();
 }
 
+function plainDescription(value) {
+  return decodeHtmlEntities(String(value || '')
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' '))
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function looksLikeCode(value) {
   const text = String(value || '').trim();
   if (!text) return true;
@@ -644,6 +653,11 @@ hexo.extend.helper.register('midnight_value', function midnightValue(value, fall
 
 hexo.extend.helper.register('midnight_excerpt', function midnightExcerpt(post, limit = 150) {
   return preferredLead(post, this, limit);
+});
+
+hexo.extend.helper.register('midnight_description', function midnightDescription(post, limit = 150) {
+  const explicit = resolveLocalizedValue(this, post && post.description, '');
+  return plainDescription(explicit) || preferredLead(post, this, limit);
 });
 
 // Missing metrics stay distinct from a measured zero. Hexo's comments boolean

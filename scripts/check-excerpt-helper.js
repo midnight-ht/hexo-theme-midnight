@@ -59,4 +59,16 @@ const explicit = helpers.midnight_excerpt.call(helperContext, {
 
 if (!explicit.startsWith('这是 Front Matter')) fail('Configured lead should take priority.');
 
+const editorialDescription = 'An async import can return the requested module after validation. This description explains the decision path, the failure cases, and what readers can verify in the article without hiding the conclusion or shortening the author-provided summary.';
+const fullDescription = helpers.midnight_description.call(helperContext, {
+  description: editorialDescription,
+  content: '<p>Fallback prose paragraph.</p>'
+}, 150);
+if (fullDescription !== editorialDescription) fail(`Explicit description was filtered or truncated: ${fullDescription}`);
+
+const unsafeDescription = helpers.midnight_description.call(helperContext, {
+  description: 'A <strong>clear</strong> summary <img src=x onerror="alert(1)"> with <code>return</code> and &amp; context.'
+}, 150);
+if (unsafeDescription !== 'A clear summary with return and & context.') fail(`Explicit description is not plain text: ${unsafeDescription}`);
+
 console.log('Excerpt helper checks OK');

@@ -8,7 +8,7 @@ const articleSources = midnight_sources(page);
 const keyTakeaways = Array.isArray(page.key_takeaways) ? page.key_takeaways.filter(item => typeof item === 'string' && item.trim()) : [];
 const authorInitial = Array.from(String(authorName).trim())[0] || 'm';
 const plainContent = strip_html(page.content || '').replace(/\s+/g, ' ').trim();
-const description = midnight_excerpt(page, 150);
+const description = midnight_description(page, 150);
 const wordCount = plainContent ? plainContent.length : 0;
 const readMinutes = Math.max(1, Math.ceil(wordCount / 500));
 const updatedDate = page.updated || page.date;

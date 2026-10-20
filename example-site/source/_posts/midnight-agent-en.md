@@ -10,7 +10,8 @@ tags:
   - Midnight-Team
 categories:
   - Engineering
-description: A paired English sample post for validating Midnight i18n, tags, table of contents, and model session entry points.
+description: >-
+  An async import can return a module after validation, and this paired English article explains the reading workflow, the failure paths, and the evidence readers can inspect. It keeps the complete author-written summary <strong>visible</strong> in the article and metadata while preserving context & clarity across search previews at the &lt;module&gt; boundary. <img src=x onerror="alert(1)">
 sources:
   - title: Hexo documentation
     url: https://hexo.io/docs/
