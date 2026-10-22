@@ -1,6 +1,6 @@
 {
   "name": "hexo-theme-midnight",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "A modern technology Hexo theme with AI session, i18n, sitemap, and comments support.",
   "keywords": [
     "hexo",
@@ -46,7 +46,9 @@
     "lint:excerpt": "node scripts/check-excerpt-helper.js",
     "lint:seo": "node scripts/check-seo.js",
     "lint:webmaster": "node scripts/check-webmaster.js",
-    "lint:home": "node scripts/check-home.js"
+    "lint:home": "node scripts/check-home.js",
+    "test": "node scripts/check-tag-case-alias.js",
+    "lint:tag-case": "node scripts/check-tag-case-alias.js"
   },
   "dependencies": {
     "js-yaml": "^4.1.0"

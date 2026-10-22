@@ -216,6 +216,12 @@ function collectTermDetails(posts, key) {
         aliases: []
       };
 
+      // Reuse an existing lowercase route instead of creating case-only files.
+      // Keep single-case tags (and category behavior) unchanged.
+      if (key === 'tags' && slug === mapKey) {
+        current.slug = slug;
+        current.path = item.path;
+      }
       if (!current.aliases.includes(slug)) current.aliases.push(slug);
       current.count += 1;
       current.posts.push(post);
@@ -242,6 +248,7 @@ function mergeConfiguredTerms(terms, hexo, collectionName) {
       const term = map.get(key);
       map.set(key, {
         ...term,
+        ...(collectionName === 'tags' ? { slug, name: item.name || term.name } : {}),
         configured: true,
         path: term.path || item.path
       });
@@ -480,6 +487,15 @@ hexo.extend.generator.register('midnight_source_i18n_pages', function midnightSo
 
     const tags = mergeConfiguredTerms(collectTermDetails(posts, 'tags'), this, 'tags');
     const categories = mergeConfiguredTerms(collectTermDetails(posts, 'categories'), this, 'categories');
+    // Footer links consume tag.path; helpers consume tag.slug. Keep both in
+    // memory aligned with the one generated route, without changing labels.
+    tags.forEach(term => term.posts.forEach(post => {
+      post.tags.data.forEach(tag => {
+        if (termSlug(tag.slug || tag.name).toLowerCase() !== term.slug.toLowerCase()) return;
+        tag.slug = term.slug;
+        tag.path = `/${lang}/tags/${encodeURIComponent(term.slug)}/`;
+      });
+    }));
 
     routes.push({
       path: `${lang}/tags/index.html`,
@@ -606,9 +622,9 @@ hexo.extend.generator.register('midnight_source_i18n_sitemap', function midnight
       });
     });
 
-    collectTerms(posts, 'tags').forEach((tag) => {
+    mergeConfiguredTerms(collectTermDetails(posts, 'tags'), this, 'tags').forEach((tag) => {
       items.push({
-        loc: siteUrl(this, `${lang}/tags/${encodeURIComponent(termSlug(tag))}/`)
+        loc: siteUrl(this, `${lang}/tags/${encodeURIComponent(tag.slug)}/`)
       });
     });
 

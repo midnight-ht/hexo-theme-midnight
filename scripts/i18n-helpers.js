@@ -419,12 +419,39 @@ function uniqueTranslations(items, page) {
   return Object.values(byLang);
 }
 
+// Resolve display-name aliases against the generated page's canonical tags.
+// Home/archive contexts carry posts rather than a direct tags collection.
+function canonicalTagSlug(value, page) {
+  const values = collection => collection && collection.data
+    ? collection.data
+    : (collection && collection.toArray ? collection.toArray() : (Array.isArray(collection) ? collection : []));
+  const normalize = item => String(item || '').trim().replace(/\s+/g, '-').replace(/^\/+|\/+$/g, '').toLowerCase();
+  const key = normalize(value);
+  const candidates = [
+    ...values(page && page.tags),
+    ...values(page && page.tag_collection),
+    ...values(page && (page.all_posts || page.posts)).flatMap(post => values(post.tags))
+  ];
+  const tag = candidates.find(item => normalize(item.name) === key || normalize(item.slug) === key);
+  return tag && tag.slug ? tag.slug : value;
+}
+
 hexo.extend.helper.register('midnight_i18n_url', function midnightI18nUrl(path, page = this.page) {
   if (!path || isExternalUrl(path)) return path || '#';
 
   const route = normalizeRoute(path);
   const languages = getSupportedLanguages(this);
   const firstSegment = route.split('/').filter(Boolean)[0];
+  const tagRoute = stripLanguagePrefix(route, languages).match(/^\/tags\/([^/]+)\/?$/);
+  if (tagRoute) {
+    let value = tagRoute[1];
+    try { value = decodeURIComponent(value); } catch (_) {}
+    const canonical = canonicalTagSlug(value, page);
+    if (canonical !== value) {
+      const lang = languages.includes(firstSegment) ? firstSegment : getRouteLanguage(this, page);
+      return routeUrl(this, `/${lang}/tags/${encodeURIComponent(canonical)}/`);
+    }
+  }
 
   if (languages.includes(firstSegment)) {
     return routeUrl(this, route);
@@ -440,7 +467,8 @@ hexo.extend.helper.register('midnight_tag_url', function midnightTagUrl(tagValue
   const lang = getRouteLanguage(this, page);
   const value = String(tagValue || '').trim().replace(/^\/+|\/+$/g, '').replace(/\s+/g, '-');
   if (!value) return routeUrl(this, `/${lang}/tags/`);
-  return routeUrl(this, `/${lang}/tags/${encodeURIComponent(value)}/`);
+  const canonical = canonicalTagSlug(value, page);
+  return routeUrl(this, `/${lang}/tags/${encodeURIComponent(canonical)}/`);
 });
 
 hexo.extend.helper.register('midnight_language_links', function midnightLanguageLinks(page = this.page) {
