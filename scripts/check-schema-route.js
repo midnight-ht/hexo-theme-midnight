@@ -1,4 +1,5 @@
 'use strict';
+if (require.main !== module) return;
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -25,3 +26,10 @@ for (const route of ['404.html', '404/', 'en/404.html', 'zh-CN/404/']) {
 assert(!rendersSchema('en/article/', { noindex: true }));
 assert(!rendersSchema('en/article/', { enabled: false }));
 console.log('Schema route regression passed: article slug digits, actual 404, noindex and disabled setting');
+
+// Hexo compiles every theme script inside a wrapper that supplies `hexo`.
+const vm = require('node:vm');
+for (const file of fs.readdirSync(__dirname).filter(name => /^check-.*\.js$/.test(name))) {
+  new vm.Script('(function(exports,require,module,__filename,__dirname,hexo){' + fs.readFileSync(path.join(__dirname, file), 'utf8') + '\n})', { filename: file });
+}
+console.log('Theme validation scripts compile under the Hexo loader wrapper');

@@ -12,12 +12,12 @@ const deps = createRequire(path.resolve(__dirname, '../example-site/package.json
 // catches routes that look equal on macOS but differ on a case-sensitive host.
 const generators = {};
 const helpers = {};
-const hexo = { extend: {
+const fixtureHexo = { extend: {
   generator: { register: (name, fn) => { generators[name] = fn; } },
   helper: { register: (name, fn) => { helpers[name] = fn; } }
 } };
 for (const script of ['source-i18n-generator.js', 'i18n-helpers.js']) {
-  vm.runInNewContext(fs.readFileSync(path.join(__dirname, script), 'utf8'), { hexo, require: deps, URL, console }, { filename: script });
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, script), 'utf8'), { hexo: fixtureHexo, require: deps, URL, console }, { filename: script });
 }
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'midnight-tag-case-'));
 const languages = ['zh-CN', 'en'];
