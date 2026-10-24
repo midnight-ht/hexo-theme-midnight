@@ -177,7 +177,7 @@
     <% if (ogImage) { %><meta property="og:image" content="<%- full_url_for(ogImage) %>"><% } %>
     <meta name="twitter:card" content="<%= ogImage ? (seoCfg.twitter_card || 'summary_large_image') : 'summary' %>">
   <% } %>
-  <% if (seoCfg.structured_data !== false && !page.noindex && !/404/.test(String(page.path || ''))) { %>
+  <% if (seoCfg.structured_data !== false && !page.noindex && !/(?:^|\/)404(?:\.html|\/|$)/.test(String(page.path || ''))) { %>
     <script id="midnight-seo-jsonld" type="application/ld+json"><%- midnight_structured_data(page, pageTitle, pageDescription, ogImage) %></script>
   <% } %>
   <meta name="theme-color" content="#080b10">
