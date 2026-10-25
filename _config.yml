@@ -1232,3 +1232,6 @@ inner_pages:
           body:
             zh-CN: 工具评测、范例解构、商业化设计。
             en: Tooling reviews, design teardowns, and monetization patterns.
+
+# i18n.canonical_category_slugs may pin locale-specific case aliases, as with
+# canonical_tag_slugs; it does not rename categories to different words.

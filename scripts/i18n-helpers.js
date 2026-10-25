@@ -421,16 +421,16 @@ function uniqueTranslations(items, page) {
 
 // Resolve display-name aliases against the generated page's canonical tags.
 // Home/archive contexts carry posts rather than a direct tags collection.
-function canonicalTagSlug(value, page) {
+function canonicalTagSlug(value, page, field = 'tags') {
   const values = collection => collection && collection.data
     ? collection.data
     : (collection && collection.toArray ? collection.toArray() : (Array.isArray(collection) ? collection : []));
   const normalize = item => String(item || '').trim().replace(/\s+/g, '-').replace(/^\/+|\/+$/g, '').toLowerCase();
   const key = normalize(value);
   const candidates = [
-    ...values(page && page.tags),
-    ...values(page && page.tag_collection),
-    ...values(page && (page.all_posts || page.posts)).flatMap(post => values(post.tags))
+    ...values(page && page[field]),
+    ...values(page && page[field === 'tags' ? 'tag_collection' : 'category_collection']),
+    ...values(page && (page.all_posts || page.posts)).flatMap(post => values(post[field]))
   ];
   const tag = candidates.find(item => normalize(item.name) === key || normalize(item.slug) === key);
   return tag && tag.slug ? tag.slug : value;
@@ -442,14 +442,15 @@ hexo.extend.helper.register('midnight_i18n_url', function midnightI18nUrl(path, 
   const route = normalizeRoute(path);
   const languages = getSupportedLanguages(this);
   const firstSegment = route.split('/').filter(Boolean)[0];
-  const tagRoute = stripLanguagePrefix(route, languages).match(/^\/tags\/([^/]+)\/?$/);
+  const tagRoute = stripLanguagePrefix(route, languages).match(/^\/(tags|categories)\/([^/]+)\/?$/);
   if (tagRoute) {
-    let value = tagRoute[1];
+    const field = tagRoute[1];
+    let value = tagRoute[2];
     try { value = decodeURIComponent(value); } catch (_) {}
-    const canonical = canonicalTagSlug(value, page);
+    const canonical = canonicalTagSlug(value, page, field);
     if (canonical !== value) {
       const lang = languages.includes(firstSegment) ? firstSegment : getRouteLanguage(this, page);
-      return routeUrl(this, `/${lang}/tags/${encodeURIComponent(canonical)}/`);
+      return routeUrl(this, `/${lang}/${field}/${encodeURIComponent(canonical)}/`);
     }
   }
 

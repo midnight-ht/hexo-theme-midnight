@@ -267,8 +267,8 @@ function mergeConfiguredTerms(terms, hexo, collectionName, lang) {
   // Optional locale-specific spelling overrides preserve historical URLs where
   // translations used different casing. Restrict this to case aliases: it is
   // not a tag renaming or route-migration facility.
-  const canonical = theme.i18n && theme.i18n.canonical_tag_slugs;
-  const overrides = collectionName === 'tags' && canonical && canonical[lang];
+  const canonical = theme.i18n && theme.i18n[collectionName === 'tags' ? 'canonical_tag_slugs' : 'canonical_category_slugs'];
+  const overrides = canonical && canonical[lang];
   if (overrides && typeof overrides === 'object' && !Array.isArray(overrides)) {
     Object.entries(overrides).forEach(([alias, value]) => {
       if (typeof value !== 'string') return;
@@ -276,7 +276,7 @@ function mergeConfiguredTerms(terms, hexo, collectionName, lang) {
       const slug = termSlug(value);
       const term = map.get(key);
       if (!term || !slug || slug.toLowerCase() !== key) return;
-      map.set(key, { ...term, slug, path: `/${lang}/tags/${encodeURIComponent(slug)}/` });
+      map.set(key, { ...term, slug, path: `/${lang}/${collectionName}/${encodeURIComponent(slug)}/` });
     });
   }
 
@@ -503,15 +503,16 @@ hexo.extend.generator.register('midnight_source_i18n_pages', function midnightSo
 
     const tags = mergeConfiguredTerms(collectTermDetails(posts, 'tags'), this, 'tags', lang);
     const categories = mergeConfiguredTerms(collectTermDetails(posts, 'categories'), this, 'categories', lang);
-    // Footer links consume tag.path; helpers consume tag.slug. Keep both in
-    // memory aligned with the one generated route, without changing labels.
-    tags.forEach(term => term.posts.forEach(post => {
-      post.tags.data.forEach(tag => {
-        if (termSlug(tag.slug || tag.name).toLowerCase() !== term.slug.toLowerCase()) return;
-        tag.slug = term.slug;
-        tag.path = `/${lang}/tags/${encodeURIComponent(term.slug)}/`;
-      });
-    }));
+    // Canonical paths are shared by post footers, helpers and term pages.
+    for (const [field, terms] of [['tags', tags], ['categories', categories]]) {
+      terms.forEach(term => term.posts.forEach(post => {
+        post[field].data.forEach(value => {
+          if (termSlug(value.slug || value.name).toLowerCase() !== term.slug.toLowerCase()) return;
+          value.slug = term.slug;
+          value.path = `/${lang}/${field}/${encodeURIComponent(term.slug)}/`;
+        });
+      }));
+    }
 
     routes.push({
       path: `${lang}/tags/index.html`,
@@ -554,25 +555,27 @@ hexo.extend.generator.register('midnight_source_i18n_pages', function midnightSo
     });
 
     categories.filter((category) => category.count > 0 || category.configured).forEach((category) => {
-      const categorySlugs = Array.from(new Set([category.slug, ...(category.aliases || [])].filter(Boolean)));
-      categorySlugs.forEach((categorySlug) => {
-        routes.push({
-          path: `${lang}/categories/${encodeURIComponent(categorySlug)}/index.html`,
-          layout: ['category', 'archive', 'index'],
-          data: {
-            available_languages: languages.filter(candidate => mergeConfiguredTerms(collectTermDetails(postsByLanguage.get(candidate) || [], 'categories'), this, 'categories', candidate).some(term => term.slug === category.slug)),
-            category: category.name,
-            category_slug: categorySlug,
-            lang,
-            title: category.name,
-            path: `${lang}/categories/${categorySlug}/`,
-            all_posts: postsCollection(posts),
-            posts: postsCollection(category.posts)
-          }
-        });
+      const translations = languages.flatMap(candidate => {
+        const target = mergeConfiguredTerms(collectTermDetails(postsByLanguage.get(candidate) || [], 'categories'), this, 'categories', candidate)
+          .find(term => term.slug.toLowerCase() === category.slug.toLowerCase());
+        return target ? [{ lang: candidate, title: target.name, path: `${candidate}/categories/${encodeURIComponent(target.slug)}/` }] : [];
+      });
+      routes.push({
+        path: `${lang}/categories/${encodeURIComponent(category.slug)}/index.html`,
+        layout: ['category', 'archive', 'index'],
+        data: {
+          available_languages: translations.map(item => item.lang),
+          translations,
+          category: category.name,
+          category_slug: category.slug,
+          lang,
+          title: category.name,
+          path: `${lang}/categories/${category.slug}/`,
+          all_posts: postsCollection(posts),
+          posts: postsCollection(category.posts)
+        }
       });
     });
-
     routes.push({
       path: `${lang}/archives/index.html`,
       layout: ['archive', 'index'],
@@ -650,9 +653,9 @@ hexo.extend.generator.register('midnight_source_i18n_sitemap', function midnight
       });
     });
 
-    collectTerms(posts, 'categories').forEach((category) => {
+    mergeConfiguredTerms(collectTermDetails(posts, 'categories'), this, 'categories', lang).forEach((category) => {
       items.push({
-        loc: siteUrl(this, `${lang}/categories/${encodeURIComponent(termSlug(category))}/`)
+        loc: siteUrl(this, `${lang}/categories/${encodeURIComponent(category.slug)}/`)
       });
     });
 
