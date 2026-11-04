@@ -1,0 +1,16 @@
+'use strict';
+if (require.main !== module) return;
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const deps=require('node:module').createRequire(path.resolve(__dirname,'../example-site/package.json'));
+const ejs=deps('ejs'),{JSDOM}=deps('jsdom');
+const template=fs.readFileSync(path.join(__dirname,'../layout/post.ejs'),'utf8');
+const protectedBlock=template.match(/<!--email_off-->\s*<div class="article-content">[\s\S]*?<\/div>\s*<!--\/email_off-->/);
+assert(protectedBlock,'Article body needs scoped Cloudflare opt-out markers outside its exact content');
+const articleContent='<pre><code>SELECT \'ada@example.test\';</code></pre>';
+const rendered=ejs.render(protectedBlock[0],{articleContent});
+const doc=new JSDOM(rendered).window.document;
+assert.equal(doc.querySelector('.article-content').innerHTML.trim(),articleContent);
+assert.equal(doc.querySelector('code').textContent,"SELECT 'ada@example.test';");
+assert(!doc.querySelector('.article-content').innerHTML.includes('email_off'),'Opt-out comments must stay outside the reviewed body');
+assert(rendered.indexOf('<!--email_off-->')<rendered.indexOf('<div'));
+console.log('Article code stays exact inside scoped edge-obfuscation opt-out; no zone-wide setting change');

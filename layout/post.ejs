@@ -145,9 +145,11 @@ function categoryUrl(label) {
 <% } %>
 
       <% if (keyTakeaways.length) { %><section class="article-takeaways" aria-labelledby="takeaways-title"><h2 id="takeaways-title"><%= configText('labels.key_takeaways', 'Key takeaways') %></h2><ul><% keyTakeaways.forEach(item => { %><li><%= item %></li><% }) %></ul></section><% } %>
+      <!--email_off-->
       <div class="article-content">
         <%- articleContent %>
       </div>
+      <!--/email_off-->
 
       <% if (articleSources.length) { %><section class="article-sources" aria-labelledby="sources-title"><h2 id="sources-title"><%= configText('labels.sources', 'Sources') %></h2><ol><% articleSources.forEach(item => { %><li><a href="<%= item.url %>" rel="noopener"><%= item.title %></a></li><% }) %></ol></section><% } %>
       <% if (postTags.length) { %>
