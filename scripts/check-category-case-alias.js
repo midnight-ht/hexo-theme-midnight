@@ -11,6 +11,9 @@ for(const [n,f]of Object.entries(helpers))ctx[n]=(...a)=>f.call(ctx,...a);
 function write(lang,slug,date,category){const dir=path.join(temp,lang,'_posts');fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(path.join(dir,slug+'.md'),`---\ntitle: ${slug}\ndate: "${date}"\nlang: ${lang}\ncategories: ["${category}"]\n---\nBody.\n`);}
 (async()=>{try{
  for(const lang of ['zh-CN','en']){write(lang,'new','2026-10-25','Linux');write(lang,'old','2026-10-01','linux');}
+ const rootHome={path:'index.html'};
+ assert.equal(helpers.midnight_i18n_url.call(ctx,'/categories/Linux/',rootHome),'/blog/zh-CN/categories/Linux/','Root-home category links must point at the generated default-language route even without an alias change');
+ assert.equal(helpers.midnight_i18n_url.call(ctx,'/categories/',rootHome),'/blog/zh-CN/categories/','Root category index is localized too');
  for(const reorder of [false,true]){
   if(reorder)for(const lang of ['zh-CN','en'])write(lang,'old','2026-10-26','linux');
   const routes=await generators.midnight_source_i18n_pages.call(ctx),sitemap=generators.midnight_source_i18n_sitemap.call(ctx).data;

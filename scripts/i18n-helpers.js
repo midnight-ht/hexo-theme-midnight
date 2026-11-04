@@ -458,7 +458,7 @@ hexo.extend.helper.register('midnight_i18n_url', function midnightI18nUrl(path, 
     return routeUrl(this, route);
   }
 
-  const prefix = getCurrentLanguagePrefix(this, page) || (/^\/(?:archives|about|advertise|newsletter|privacy)(?:\/|$)/.test(route) ? getRouteLanguage(this, page) : '');
+  const prefix = getCurrentLanguagePrefix(this, page) || (/^\/(?:archives|about|advertise|newsletter|privacy|categories)(?:\/|$)/.test(route) ? getRouteLanguage(this, page) : '');
   if (!prefix) return routeUrl(this, route);
   if (route === '/') return routeUrl(this, `/${prefix}/`);
   return routeUrl(this, `/${prefix}${route}`);
