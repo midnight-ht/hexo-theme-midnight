@@ -11,7 +11,14 @@ const bio = midnight_text('labels.author_description', '');
 function tagOf(post) { const tags = post.tags && post.tags.data ? post.tags.data : (Array.isArray(post.tags) ? post.tags : []); return typeof tags[0] === 'string' ? tags[0] : tags[0] && tags[0].name; }
 function tagLabel(name) { const item = collections.find(item => item.name === name); return item ? midnight_value(item.label, name) : name; }
 function collectionHref(item) { const parts = String(item.path || '').split('/').filter(Boolean); const i = parts.indexOf('tags'); return i >= 0 ? midnight_tag_url(parts[i+1]) : midnight_i18n_url(item.path || '/'); }
-const topics = collections.filter(item => posts.some(post => { const tags = post.tags && post.tags.data ? post.tags.data : (Array.isArray(post.tags) ? post.tags : []); return tags.some(tag => (typeof tag === 'string' ? tag : tag.name) === item.name); }));
+function matchesCollection(post, item) {
+  const parts = String(item.path || '').split('/').filter(Boolean);
+  const field = parts.includes('categories') ? 'categories' : 'tags';
+  const taxonomy = post[field];
+  const values = taxonomy && taxonomy.data ? taxonomy.data : (Array.isArray(taxonomy) ? taxonomy : []);
+  return values.some(value => (typeof value === 'string' ? value : value.name) === item.name);
+}
+const topics = collections.filter(item => posts.some(post => matchesCollection(post, item)));
 %>
 <section class="studio-hero">
   <div class="studio-container studio-hero__grid">
