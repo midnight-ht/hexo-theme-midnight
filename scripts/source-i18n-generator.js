@@ -547,7 +547,7 @@ hexo.extend.generator.register('midnight_source_i18n_pages', function midnightSo
           tag_slug: tag.slug,
           lang,
           title: tag.name,
-          path: `${lang}/tags/${tag.slug}/`,
+          path: `${lang}/tags/${encodeURIComponent(tag.slug)}/`,
           all_posts: postsCollection(posts),
           posts: postsCollection(tag.posts)
         }
@@ -570,7 +570,7 @@ hexo.extend.generator.register('midnight_source_i18n_pages', function midnightSo
           category_slug: category.slug,
           lang,
           title: category.name,
-          path: `${lang}/categories/${category.slug}/`,
+          path: `${lang}/categories/${encodeURIComponent(category.slug)}/`,
           all_posts: postsCollection(posts),
           posts: postsCollection(category.posts)
         }

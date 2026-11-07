@@ -251,11 +251,30 @@ function encodeRoutePath(value) {
     try { return encodeURIComponent(decodeURIComponent(part)); } catch (_) { return encodeURIComponent(part); }
   }).join('/') + match[2];
 }
-function routeUrl(helper, route) { return encodeRoutePath(helper.url_for(route)); }
+// Hexo's relative and absolute helpers decode/re-encode escapes differently.
+// Shield escapes while applying root/pretty-URL settings, before a slash can
+// become a segment boundary or a percent sign can be double encoded.
+function preserveRouteEscapes(value, resolve) {
+  const raw = String(value);
+  let prefix = 'midnightRouteEscape';
+  while (raw.includes(prefix)) prefix += 'X';
+  const escapes = [];
+  const shielded = raw.replace(/%[0-9a-f]{2}/gi, escape => {
+    const token = `${prefix}${escapes.length}End`;
+    escapes.push([token, escape]);
+    return token;
+  });
+  let result = resolve(shielded);
+  escapes.forEach(([token, escape]) => { result = result.split(token).join(escape); });
+  return result;
+}
+function routeUrl(helper, route) {
+  return encodeRoutePath(preserveRouteEscapes(route, value => helper.url_for(value)));
+}
 
 hexo.extend.helper.register('midnight_canonical_url', function midnightCanonicalUrl(page) {
   const value = page.canonical || page.permalink || page.path || '/';
-  return this.full_url_for(value).replace(/^(https?:\/\/[^/]+)([\s\S]*)$/, (_, origin, route) => origin + encodeRoutePath(route));
+  return preserveRouteEscapes(value, route => this.full_url_for(route)).replace(/^(https?:\/\/[^/]+)([\s\S]*)$/, (_, origin, route) => origin + encodeRoutePath(route));
 });
 
 function isExternalUrl(path) {
