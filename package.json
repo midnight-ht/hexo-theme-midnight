@@ -53,5 +53,9 @@
   },
   "dependencies": {
     "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "hexo-util-v3": "npm:hexo-util@3.3.0",
+    "hexo-util-v4": "npm:hexo-util@4.0.0"
   }
 }

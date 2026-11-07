@@ -35,7 +35,7 @@ function getThemeConfig(ctx) {
 
 function postTranslationItem(post, helper, cfg, langField) {
   const path = post.path || '/';
-  const permalink = post.permalink || (helper && typeof helper.full_url_for === 'function' ? helper.full_url_for(path) : '');
+  const permalink = post.permalink ? translationPermalink(helper, post.permalink) : (helper && typeof helper.full_url_for === 'function' ? translationPermalink(helper, path) : '');
 
   return {
     title: post.title,
@@ -91,7 +91,7 @@ function sourcePostFromFile(ctx, file, postsDir, cfg, langField) {
     permalink: ''
   };
 
-  post.permalink = ctx.full_url_for ? ctx.full_url_for(post.path) : '';
+  post.permalink = ctx.full_url_for ? translationPermalink(ctx, post.path) : '';
   return post;
 }
 
@@ -222,7 +222,7 @@ hexo.extend.helper.register('midnight_translations', function midnightTranslatio
       title: page.title,
       lang: page[langField] || page.lang || cfg.default_lang || 'zh-CN',
       path: page.path,
-      permalink: page.permalink || this.full_url_for(page.path || '/')
+      permalink: translationPermalink(this, page.permalink || page.path || '/')
     });
   }
 
@@ -269,12 +269,20 @@ function preserveRouteEscapes(value, resolve) {
   return result;
 }
 function routeUrl(helper, route) {
+  if (isExternalUrl(route)) return route;
   return encodeRoutePath(preserveRouteEscapes(route, value => helper.url_for(value)));
 }
 
+function canonicalRouteUrl(helper, value) {
+  return preserveRouteEscapes(value, route => helper.full_url_for(route)).replace(/^(https?:\/\/[^/]+)([\s\S]*)$/, (_, origin, route) => origin + encodeRoutePath(route));
+}
+
+function translationPermalink(helper, value) {
+  return isExternalUrl(value) ? value : canonicalRouteUrl(helper, value);
+}
+
 hexo.extend.helper.register('midnight_canonical_url', function midnightCanonicalUrl(page) {
-  const value = page.canonical || page.permalink || page.path || '/';
-  return preserveRouteEscapes(value, route => this.full_url_for(route)).replace(/^(https?:\/\/[^/]+)([\s\S]*)$/, (_, origin, route) => origin + encodeRoutePath(route));
+  return canonicalRouteUrl(this, page.canonical || page.permalink || page.path || '/');
 });
 
 function isExternalUrl(path) {
@@ -374,7 +382,7 @@ function explicitTranslationItem(lang, value, helper, langField) {
       lang,
       title: lang,
       path: value,
-      permalink: isExternalUrl(value) ? value : helper.full_url_for(value)
+      permalink: translationPermalink(helper, value)
     };
   }
 
@@ -388,7 +396,7 @@ function explicitTranslationItem(lang, value, helper, langField) {
     lang: itemLang,
     title: value.title || itemLang,
     path: itemPath,
-    permalink: value.permalink || (isExternalUrl(itemPath) ? itemPath : helper.full_url_for(itemPath))
+    permalink: translationPermalink(helper, value.permalink || itemPath)
   };
 }
 
@@ -503,7 +511,7 @@ hexo.extend.helper.register('midnight_language_links', function midnightLanguage
       title: item.title,
       path: item.path,
       url: routeUrl(this, item.path || '/'),
-      absolute_url: this.midnight_canonical_url({ permalink: item.permalink, path: item.path || '/' })
+      absolute_url: item.permalink || this.midnight_canonical_url({ path: item.path || '/' })
     };
   });
 

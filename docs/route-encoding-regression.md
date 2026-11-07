@@ -28,3 +28,22 @@ Assertions cover slash plus Chinese/ASCII labels, plain Chinese, plain ASCII, li
 Fresh final verification: `npm test` passed all five regression scripts, including the Hexo theme-loader wrapper compilation check. The first full-suite attempt caught a test-local `const hexo` colliding with that wrapper parameter; the fixture was renamed before the passing run.
 
 This is local generator/helper evidence. It does not establish how the deployed host routes encoded slashes. After the consuming site upgrades and builds, verify each new encoded-slash URL on its deployed host and inspect title, canonical, hreflang and body. Keep ordinary Unicode routes once-encoded in canonical URLs; no Vercel rewrite or broader static filename strategy was changed here.
+
+## Review follow-up: consumer util 4.0 hreflang
+
+The initial test dependency resolved to the example site's `hexo-util@3.3.0`. The consuming Hexo 8 blog resolves `hexo-util@4.0.0`. Read-only probes confirmed that `full_url_for('/tags/A%2FB/')` keeps `%2F` with 3.3.0 but produces `%252F` with 4.0.0. Thus the absolute-helper behavior described above specifically refers to the consumer's 4.0.0, and the initial passing suite was insufficient evidence of consumer hreflang correctness.
+
+Review independently found earlier unprotected `full_url_for` calls in translation permalink construction: the current-page insertion, explicit string/object translations, source-file posts and indexed posts. Later canonical processing cannot infer whether `%252F` was deliberate literal text or an earlier unwanted extra encoding.
+
+The test now declares exact dev-only npm aliases `hexo-util-v3` (3.3.0) and `hexo-util-v4` (4.0.0), with a root package lock. After installing the root and example-site dependencies, ordinary `npm test` always runs the complete route fixture against both implementations; it does not depend on a sibling blog checkout. The added 4.0.0 run failed before the follow-up implementation with:
+
+```text
+Hexo URL implementation 3.3.0 passed
+AssertionError: hreflang absolute: A%2FB%E6%B5%8B%E8%AF%95
+actual:   https://example.test/zh-CN/tags/A%252FB%E6%B5%8B%E8%AF%95/
+expected: https://example.test/zh-CN/tags/A%2FB%E6%B5%8B%E8%AF%95/
+```
+
+All internal translation permalink creation now uses the shared protected canonical route resolver before any encoding information is lost. Already external permalinks are preserved and used directly in hreflang. Tests additionally exercise explicit string/object/internal-permalink forms, current-page insertion, source-file translation indexing, locals-post indexing, and exact external permalink preservation. Both implementation versions, both root configurations and the original reserved-character matrix pass in the final full `npm test` run. Version remains the unreleased 0.4.9.
+
+An additional assertion for an explicit external translation's clickable `url` first failed with `https%3A//other.test/...` instead of `https://other.test/...`. `routeUrl` now returns external values directly, matching the existing external-link policy of `midnight_i18n_url`; both the link and absolute hreflang remain exact.
